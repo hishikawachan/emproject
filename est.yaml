@@ -1,0 +1,136 @@
+dbip: localhost
+dbmarianame: emoney
+dbport: '3306'
+dbpw: KW708kiwa
+dbuser: emoney
+dir_filepath: C:/emoney
+#収支計算書レイアウト
+input_sheet: 'calc' #計算書のシート名
+output_sheet: 'est' #見積書のシート名
+#ヘッダー部レイアウト（計算書・見積書共通）
+estno: #見積番号
+  row1: 3 
+  col1: 30
+  row2: 3 
+  col2: 25  
+projectno: #案件番号
+  row1: 4 
+  col1: 30
+  row2: 4 
+  col2: 25  
+companyname: #宛先会社名
+  row1: 3 
+  col1: 1
+  row2: 3 
+  col2: 1  
+projectname: #案件名称
+  row1: 6 
+  col1: 5
+  row2: 13 
+  col2: 4
+projectplace: #案件場所
+  row1: 7 
+  col1: 5
+  row2: 14 
+  col2: 4
+payterm: #支払い条件
+  row1: 8 
+  col1: 5
+  row2: 15 
+  col2: 4
+projectdeadline: #納期
+  row1: 9 
+  col1: 5
+  row2: 16 
+  col2: 4
+projectdateofexpiry: #有効期限
+  row1: 10 
+  col1: 5
+  row2: 17 
+  col2: 4
+projectnotice1: #特記事項1
+  row1: 11 
+  col1: 5
+  row2: 18 
+  col2: 4
+projectnotice2: #特記事項2
+  row1: 12 
+  col1: 5
+  row2: 19 
+  col2: 4
+est_total: #見積表題合計
+  row: 11
+  col: 3
+#見積書明細行レイアウト
+est_items:
+  first_row_1: 21 #見積書（表紙）最初行
+  last_row_1: 42 #見積書（表紙）最終行
+  total_row: 45 #見積書（表紙）合計行
+  subtotal_row: 43 #見積書（表紙）小計行
+  discount_row: 44 #見積書（表紙）値引行
+  #meisai_row: [49, 88, 93, 132, 137, 177, 182, 222] #見積書（内訳明細書）開始行～終了行
+  meisai_row: #見積書 各ページ開始行終了行
+    - index: 49
+      page: 1
+    - index: 88
+      page: 1
+    - index: 93
+      page: 2
+    - index: 132
+      page: 2
+    - index: 137
+      page: 3
+    - index: 177
+      page: 3
+    - index: 182
+      page: 4
+    - index: 222
+      page: 4
+  #見積書設定カラム
+  line_num: 1 #明細No
+  itemname: 2 #アイテム名称
+  itemspecification: 10 #アイテム仕様
+  itemquantity: 15 #数量
+  itemunit: 17 #単位
+  itemunitprice: 18 #単価
+  itemprice: 20 #金額
+#計算書明細レイアウト
+calc_items:
+  first_row: 14 #計算書明細最初行
+  last_row: 114 #計算書明細最終行
+  first_col: 1 #計算書明細最初列
+  last_col: 27 #計算書明細最終列
+  level1: 1 #レベル1
+  level2: 2 #レベル2
+  level3: 3 #レベル3
+  itemname: 4 #アイテム名称
+  itemspecification: 16 #アイテム仕様
+  itemquantity: 24 #数量
+  itemunit: 25 #単位
+  itemunitprice: 26 #単価
+  itemprice: 27 #金額
+  itemprofitrate: 28 #粗利率
+  itemsalesunitprice: 29 #販売単価
+  itemsaleprice: 30 #販売金額
+  subtotalprice:
+    row: 43
+    row2: 7
+    col: 20
+    col2: 30
+    col3: 5
+    comment: '小   計'
+  discount:
+    row: 44
+    row2: 8
+    col: 20
+    col2: 30
+    col3: 4
+    comment: '【貴社特別値引】'
+  totalprice:
+    row: 45
+    row2: 9
+    col: 20
+    col2: 30
+
+
+
