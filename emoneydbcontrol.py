@@ -48,8 +48,8 @@ if __name__ == "__main__":
     # [9]:帳票ファイル出力先ディレクトリ
     # 対象データリスト
     
-
-    print('処理開始：',datetime.datetime.now()) 
+    dt_now = datetime.datetime.now()
+    print('全体処理開始：',dt_now) 
     
     # 基本情報取得
     with open('C:/emoney/emoney.yaml','r+',encoding="utf-8") as ry:
@@ -73,9 +73,11 @@ if __name__ == "__main__":
         #データベース操作クラス初期化
         resdb = DataBaseClass(parm_data) 
         #データベースバックアップ実行
-        print('データベースバックアップ(処理前)開始：',datetime.datetime.now())         
+        dt_now = datetime.datetime.now()
+        print('データベースバックアップ1開始：',dt_now)         
         ret = resdb.database_backup()        
-        print('データベースバックアップ(処理前)終了：',datetime.datetime.now())
+        dt_now = datetime.datetime.now()
+        print('データベースバックアップ1終了：',dt_now)
          
         #会社データ全件取得
         ret_rows = resdb.company_data_allget()
@@ -95,10 +97,10 @@ if __name__ == "__main__":
             # 処理予定日<=今日なら処理対象とする
             if td.days >= 0:
                 
-                print('対象会社 :',ret_rows[i][1])
                 #debug
                 print('データリスト化開始 :',datetime.datetime.now())
-            
+                
+                print('対象会社 :',ret_rows[i][1])
                 parm_data = []
                 #共通パラメータセット
                 parm_data.append(dbip)
@@ -117,7 +119,7 @@ if __name__ == "__main__":
                 f_name = ret_rows[i][10]
                 file_name = f_name.strip()
                 input_filepath = os.path.join(file_path,file_name)  
-        
+                #print('データリスト化開始 :',datetime.datetime.now())
                 if ret_rows[i][9] == '1': #売上明細ファイル           
                     with open(input_filepath, encoding = 'shift-jis') as f:
                         reader = csv.reader(f)
@@ -189,9 +191,6 @@ if __name__ == "__main__":
                     print('データ抽出終了 :',datetime.datetime.now())
                     
                     if len(output_rows) > 0: #対象データがあればDB書込み
-                        #debug  
-                        print('DB出力開始 :',datetime.datetime.now())
-                        
                         # データ編集/出力クラス初期化
                         res_ed = dbEditor(parm_data,output_rows)
                         # 売上照会ファイル編集・書込み
@@ -208,9 +207,7 @@ if __name__ == "__main__":
                             print('ヤマトフィナンシャルデータ処理開始')
                             res_cont = res_ed.yamato_edit(parm_data)
                             
-                        del res_ed
-                        #debug  
-                        print('DB出力終了 :',datetime.datetime.now())                    
+                        del res_ed                    
                         #
                         # res_cont[0] : 結果ステータス
                         # res_cont[1] : DB 出力件数
@@ -221,19 +218,13 @@ if __name__ == "__main__":
                             print('データベースの出力失敗 status: ',res_cont[0])
                         else:                        
                             #帳票作成クラス初期化~帳票出力
-                            #debug  
-                            print('帳票出力開始 :',datetime.datetime.now())            
-                            
                             resdbrep = dbReport(parm_data)
                             res_cont = resdbrep.main()
                             del resdbrep
                             #対象会社データ更新日の更新
                             resdb = DataBaseClass(parm_data) 
                             res_row = resdb.company_updateday_update(ret_rows[i][0])
-                            del resdb
-                            
-                            #debug  
-                            print('帳票出力終了 :',datetime.datetime.now())              
+                            del resdb  
             i += 1
         # dt_now = datetime.datetime.now()
         # print('データベースバックアップ2開始：',dt_now) 
@@ -243,4 +234,5 @@ if __name__ == "__main__":
         # print('データベースバックアップ2終了：',dt_now)
         # del resdb  
         
-        print('処理終了：',datetime.datetime.now())            
+        dt_now = datetime.datetime.now()
+        print('処理終了：',dt_now)            
