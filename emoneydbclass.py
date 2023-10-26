@@ -13,6 +13,7 @@
 # [更新履歴]
 #   2023/3/16  新規作成
 #   2023/9/16  試験的に機能追加(金種別・時間別等のデータをSQLにて取得)
+#   2023/10/24 取引明細データ抽出速度向上改良
 # ======================================
 from datetime import datetime
 import datetime
@@ -106,7 +107,20 @@ class DataBaseClass:
         else:
             num = self.cur.excecuteInsertmany(output_sql,row) 
             return num    
-    
+    ####################################    
+    #　実データ書き込み IGNORE仕様
+    ####################################
+    def data_insert2(self,row):
+        output_sql = """
+            INSERT IGNORE INTO tbpaylog
+            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, \
+                   %s, %s, %s, %s, %s, %s)
+        """
+        if len(row) == 0:
+            return 0
+        else:
+            num = self.cur.excecuteInsertmany(output_sql,row) 
+            return num    
     #####################################
     # ヤマトフィナンシャルデータからニューツルミ1階分のみ検出
     #####################################
@@ -357,21 +371,61 @@ class DataBaseClass:
         return df_place
     ###############################################################
     # 条件に合う取引明細データをDataFrameで返す
+    # 2023.10.24 データ抽出速度向上
     ###############################################################
-    def paylog_get(self,COCODE,sdate,edate):  
-        sql_paylog = f"""  
+    def paylog_get(self,COCODE,sdate,edate): 
+        sql_place = f"""  
+                            SELECT placecode
+                            FROM tbplace 
+                            where placecocode = {COCODE}
+                    """ 
+        #debug
+        print('設置場所番号抽出開始：',datetime.datetime.now())   
+        
+        ret_place = self.cur.excecuteQuery(sql_place)
+        #print('抽出された設置場所コード',ret_place)
+        s_date = sdate.year * 10000 +  sdate.month * 100 + sdate.day
+        e_date = edate.year * 10000 +  edate.month * 100 + edate.day
+        
+        ret_place2 = []
+        for i in ret_place:
+            ret_place2.append(int(i[0]))
+            
+        p_array = tuple(ret_place2)
+        stmt = ','.join(['%s'] * len(ret_place2))
+        sql_place2 = f"""
                             SELECT *
                             FROM tbpaylog as a
                             inner join tbplace as c
                                  on (a.payplacecd = c.placecode)
-                    """
-        #debug
-        print('売上履歴データ処理１開始：',datetime.datetime.now())   
+                            WHERE paydatedec >= '{s_date}'
+                            AND paydatedec <= '{e_date}'
+                            AND payplacecd IN({stmt})                            
+                    """ %p_array        
         
-        ret_rows = self.cur.excecuteQuery(sql_paylog)
+        # sql_place2 = f"""
+        #                     SELECT *
+        #                     FROM tbpaylog
+        #                     WHERE paydatedec >= '{sdate}'
+        #                     AND paydatedec <= '{edate}'
+        #                     AND payplacecd IN({stmt})                            
+        #             """ %p_array        
         
+        ret_rows = self.cur.excecuteQuery(sql_place2)
         #debug
-        print('売上履歴データ処理１終了：',datetime.datetime.now()) 
+        print('設置場所番号抽出終了：',datetime.datetime.now()) 
+        # print('取引明細 会社コードマージ開始：',datetime.datetime.now())         
+        # sql_paylog = f"""  
+        #                     SELECT *
+        #                     FROM tbpaylog as a
+        #                     inner join tbplace as c
+        #                          on (a.payplacecd = c.placecode)
+        #             """
+        
+        # ret_rows = self.cur.excecuteQuery(sql_paylog)
+        
+        # #debug
+        # print('取引明細 会社コードマージ終了：',datetime.datetime.now()) 
         
         colum_list = ['payyear','paymonth','payday','payhour','payminute', \
                     'paysecond','paypayno','payplacecd', 'paykbncd','paycardcd', \
@@ -382,15 +436,15 @@ class DataBaseClass:
         #改行コード外す
         df_paylog['placecocode'] = df_paylog['placecocode'].str.strip()
         df_paylog['placesisancode'] = df_paylog['placesisancode'].str.strip()
-        # 対象日付及び対象会社で抽出
-        df_paylog = df_paylog.astype({'payyear':int,'paymonth': int,'payday':int,'placecocode':str})   
+        # # 対象日付及び対象会社で抽出
+        # df_paylog = df_paylog.astype({'payyear':int,'paymonth': int,'payday':int,'placecocode':str})   
         
-        s_date = sdate.year * 10000 +  sdate.month * 100 + sdate.day
-        e_date = edate.year * 10000 +  edate.month * 100 + edate.day
+        # s_date = sdate.year * 10000 +  sdate.month * 100 + sdate.day
+        # e_date = edate.year * 10000 +  edate.month * 100 + edate.day
         
-        df_paylog1 = df_paylog[(df_paylog['paydatedec'] >= s_date) & (df_paylog['paydatedec'] <= e_date) & (df_paylog['placecocode'] == COCODE)]   
+        # df_paylog1 = df_paylog[(df_paylog['paydatedec'] >= s_date) & (df_paylog['paydatedec'] <= e_date) & (df_paylog['placecocode'] == COCODE)]   
         
-        return df_paylog1
+        return df_paylog
     ###############################################################
     # 条件に合う取引明細データの売上金額を年・月で集計
     ###############################################################

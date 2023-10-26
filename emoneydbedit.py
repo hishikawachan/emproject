@@ -46,8 +46,7 @@ class dbEditor:
         #[18]決済時刻
         
         #debug
-        dt_now = datetime.datetime.now()
-        print('売上データ出力処理開始(売上明細)：',dt_now)     
+        print('売上データ出力処理開始(売上明細)：',datetime.datetime.now())     
         #
         
         out_count = 0
@@ -106,8 +105,14 @@ class dbEditor:
                     data_list.append(int(row[17])) #決済金額
                     sum_price += int(row[17])
                     
-                # データベースに存在していないかチェック    
-                ck_count = self.resdb.db_wcheck1(data_list)      
+                # データベースに存在していないかチェック 
+                #debug
+                #print('データダブりチェック(START)：',datetime.datetime.now())    
+                   
+                #ck_count = self.resdb.db_wcheck1(data_list)    
+                ck_count = ()
+                #debug
+                #print('データダブりチェック(FINISH)：',datetime.datetime.now())      
 
                 #対象データが無ければ書き込み用配列にappend
                 if len(ck_count) == 0:
@@ -143,12 +148,12 @@ class dbEditor:
             print('出力件数',out_count)
             print('合計金額',sum_price)
             # DBへデータ出力
-            data_num = self.resdb.data_insert(output_list)               
-        
+            #data_num = self.resdb.data_insert(output_list)               
+            #重複レコード排除モード
+            data_num = self.resdb.data_insert2(output_list)     
         del self.resdb
         #debug
-        dt_now = datetime.datetime.now()
-        print('売上データ出力処理終了(売上明細)：',dt_now)     
+        print('売上データ出力処理終了(売上明細)：',datetime.datetime.now())     
         #
         return edit_status,data_num,out_err,db_updatedate
     
@@ -164,8 +169,7 @@ class dbEditor:
         output_list = []       
         
         #debug
-        dt_now = datetime.datetime.now()
-        print('売上データ出力処理開始(TOAMAS)：',dt_now)     
+        print('売上データ出力処理開始(TOAMAS)：',datetime.datetime.now())     
         #
         
         
@@ -271,8 +275,7 @@ class dbEditor:
         
         del self.resdb
         #debug
-        dt_now = datetime.datetime.now()
-        print('売上データ出力処理終了(TOAMAS)：',dt_now)     
+        print('売上データ出力処理終了(TOAMAS)：',datetime.datetime.now())     
         #
         return edit_status,data_num,db_updatedate  
     #####################################

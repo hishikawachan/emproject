@@ -48,6 +48,9 @@ class dbReportEdit:
     # カード種類別集計表
     ########################
     def print_syubetsu(self,df_card,df_paylog1):
+        #debug
+        print('カード種類別集計表出力開始：',datetime.datetime.now()) 
+        
         # 決済種別を結合
         df_paylog = pd.merge(df_paylog1,df_card, left_on='paycardcd', right_on='cardcode') 
         # 決済種別毎に集計
@@ -129,6 +132,9 @@ class dbReportEdit:
         
         wb.save(f'{self.file_out_path}')
         
+        #debug
+        print('カード種類別集計表出力終了：',datetime.datetime.now()) 
+        
         return 0
         
     ######################
@@ -136,6 +142,9 @@ class dbReportEdit:
     ######################
     def print_place(self,df_paylog,sheet_name):
         
+        #debug
+        print('設置場所別集計表出力開始：',datetime.datetime.now()) 
+                
         #データをExcelに出力    
         with pd.ExcelWriter(f'{self.file_out_path}', mode='a') as writer:
             df_paylog.to_excel(writer,startrow=3,startcol=1,sheet_name=sheet_name) 
@@ -214,11 +223,18 @@ class dbReportEdit:
         # save xlsx file
         wb.save(f'{self.file_out_path}')
         
+        #debug
+        print('設置場所別集計表出力終了：',datetime.datetime.now()) 
+        
         return 0
     ##########################
     # 金種別選択回数集計表出力
     # ########################  
     def print_kinsyu(self,df_paylog1,df_paylog2,sheet_name):
+        
+        #debug
+        print('金種別集計表出力開始：',datetime.datetime.now()) 
+        
         #データをExcelに出力
         sheet_name2 = sheet_name + '_2'
         with pd.ExcelWriter(f'{self.file_out_path}', mode='a') as writer:
@@ -357,6 +373,9 @@ class dbReportEdit:
         #wb.remove(wb.worksheets[3])
         wb.remove(wb[sheet_name2])
         wb.save(f'{self.file_out_path}')
+        
+        #debug
+        print('金種別集計表出力終了：',datetime.datetime.now()) 
         
         return 0
     
@@ -545,7 +564,10 @@ class dbReportEdit:
     ####################
     # 時間別集計表出力
     ####################
-    def print_jikan(self,df_paylog1,sheet_name):        
+    def print_jikan(self,df_paylog1,sheet_name):   
+        
+        #debug
+        print('時間別集計表出力開始：',datetime.datetime.now())      
             
         #データをExcelに出力     
         with pd.ExcelWriter(f'{self.file_out_path}', mode='a') as writer:
@@ -675,6 +697,9 @@ class dbReportEdit:
         # save xlsx file
         wb.save(f'{self.file_out_path}')
         
+        #debug
+        print('時間別集計表出力終了：',datetime.datetime.now())      
+        
         return 0
     #
     # 時間別集計表出力（テストトライアル）
@@ -691,6 +716,9 @@ class dbReportEdit:
     # 出力されたEXCELシートをwin32apiを使ってPDF変換する
     #     
     def pdfconv(self,dir_out_filepath):
+        
+        #debug
+        print('PDFファイル出力開始：',datetime.datetime.now())
         excel = win32com.client.Dispatch("Excel.Application")
         # pdfへの変換
         path = dir_out_filepath + '/'
@@ -713,6 +741,9 @@ class dbReportEdit:
             
         wb.Close()
         excel.Quit() 
+        
+        #debug
+        print('PDFファイル出力終了：',datetime.datetime.now())
     
     ###############################################################
     # ディストラクタ

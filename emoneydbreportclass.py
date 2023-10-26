@@ -163,8 +163,8 @@ class dbReport:
         prec = ret_rows[0][2]
         block = ret_rows[0][3]
         
-        dt_now = datetime.datetime.now()
-        print('帳票出力処理開始：',dt_now) 
+        #debug
+        print('帳票出力処理開始：',datetime.datetime.now()) 
         
         #出力先パスの生成
         dir_date = str(companycd) + '_'+str(SYEAR)+str(SMONTH)+str(SDAY)+'_'+str(EYEAR)+str(EMONTH)+str(EDAY)
@@ -232,8 +232,8 @@ class dbReport:
         # 出力したシートをPDFに変換
         self.res_ed.pdfconv(dir_out_filepath)                              
     
-        dt_now = datetime.datetime.now()
-        print('帳票処理終了：',dt_now)
+        #debug
+        print('帳票出力処理終了：',datetime.datetime.now())
         
     ###############################################################
     # ディストラクタ
