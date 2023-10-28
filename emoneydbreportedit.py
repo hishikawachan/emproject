@@ -20,6 +20,7 @@ import os
 import win32com.client
 import pandas as pd
 import openpyxl 
+#import xlwings as xw
 from openpyxl.styles.borders import Border, Side
 from openpyxl.styles.alignment import Alignment
 from openpyxl.styles import Font
@@ -744,6 +745,42 @@ class dbReportEdit:
         
         #debug
         print('PDFファイル出力終了：',datetime.datetime.now())
+    #
+    # 出力されたEXCELシートをxlwungsを使ってPDF変換する
+    #     
+    # def pdfconv2(self,dir_out_filepath):
+    #     #debug
+    #     print('PDFファイル出力2開始：',datetime.datetime.now())
+    #     excel = win32com.client.Dispatch("Excel.Application")
+    #     # pdfへの変換
+    #     path = dir_out_filepath + '/'
+    #     #wbを取得
+    #     wb = excel.Workbooks.Open(self.file_out_path)
+    #     #sheetを取得
+    #     excelSheets = []
+    #     for sheet in wb.Worksheets:
+    #         excelSheets.append(sheet.name)
+        
+    #     App = xw.App()
+    #     sheet_num = len(excelSheets)
+    #     for i in range(1,sheet_num+1):   
+    #         wb.WorkSheets(i).Select()
+    #         try:
+    #             if os.path.exists(path + excelSheets[i-1] + '.pdf' ):
+    #                 os.remove(path + excelSheets[i-1] + '.pdf' )
+    #             wb.to_pdf(path=path + excelSheets[i-1] + '.pdf', include=i, exclude=None, exclude_start_string='#', show=False)
+    #         except:
+    #             print('PDFファイルが正常に保存できませんでした')
+    #             wb.Close()
+    #             excel.Quit() 
+    #             App.quit()
+            
+    #     wb.Close()
+    #     excel.Quit() 
+    #     App.quit()
+        
+    #     #debug
+    #     print('PDFファイル出力2終了：',datetime.datetime.now())
     
     ###############################################################
     # ディストラクタ

@@ -230,7 +230,9 @@ class dbReport:
         ret = self.jikan_print(ret_paylog,'2') 
         
         # 出力したシートをPDFに変換
-        self.res_ed.pdfconv(dir_out_filepath)                              
+        #self.res_ed.pdfconv(dir_out_filepath)
+        #debug
+        self.res_ed.pdfconv(dir_out_filepath)
     
         #debug
         print('帳票出力処理終了：',datetime.datetime.now())
