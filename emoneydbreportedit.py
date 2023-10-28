@@ -17,10 +17,11 @@ from datetime import datetime
 import datetime
 import jpholiday
 import os
-import win32com.client
+#import win32com.client
 import pandas as pd
 import openpyxl 
-#import xlwings as xw
+import xlwings as xw
+import glob
 from openpyxl.styles.borders import Border, Side
 from openpyxl.styles.alignment import Alignment
 from openpyxl.styles import Font
@@ -714,73 +715,27 @@ class dbReportEdit:
         print('テスト完了')  
 
     #
-    # 出力されたEXCELシートをwin32apiを使ってPDF変換する
-    #     
-    def pdfconv(self,dir_out_filepath):
-        
-        #debug
-        print('PDFファイル出力開始：',datetime.datetime.now())
-        excel = win32com.client.Dispatch("Excel.Application")
-        # pdfへの変換
-        path = dir_out_filepath + '/'
-        wb = excel.Workbooks.Open(self.file_out_path)
-        excelSheets = []
-        for sheet in wb.Worksheets:
-            excelSheets.append(sheet.name)
-        #for i in range(1,5):
-        sheet_num = len(excelSheets)
-        for i in range(1,sheet_num+1):   
-            wb.WorkSheets(i).Select()
-            try:
-                if os.path.exists(path + excelSheets[i-1] + '.pdf' ):
-                    os.remove(path + excelSheets[i-1] + '.pdf' )
-                wb.ActiveSheet.ExportAsFixedFormat(0, path + excelSheets[i-1] + '.pdf' )
-            except:
-                print('PDFファイルが正常に保存できませんでした')
-                wb.Close()
-                excel.Quit() 
-            
-        wb.Close()
-        excel.Quit() 
-        
-        #debug
-        print('PDFファイル出力終了：',datetime.datetime.now())
-    #
     # 出力されたEXCELシートをxlwungsを使ってPDF変換する
     #     
-    # def pdfconv2(self,dir_out_filepath):
-    #     #debug
-    #     print('PDFファイル出力2開始：',datetime.datetime.now())
-    #     excel = win32com.client.Dispatch("Excel.Application")
-    #     # pdfへの変換
-    #     path = dir_out_filepath + '/'
-    #     #wbを取得
-    #     wb = excel.Workbooks.Open(self.file_out_path)
-    #     #sheetを取得
-    #     excelSheets = []
-    #     for sheet in wb.Worksheets:
-    #         excelSheets.append(sheet.name)
+    def pdfconv(self,dir_out_filepath):
+        #debug
+        print('PDFファイル出力2開始：',datetime.datetime.now())
+        # pdfへの変換
+        output_path = dir_out_filepath + '/'
+        #Excelファイルを取得
+        excel_file =  glob.glob(self.file_out_path) 
+
+        App = xw.App(visible=False)        
+
+        wb = xw.Book(excel_file[0])
+        for j in wb.sheets:
+            wb.sheets[j].to_pdf(path= output_path + j.name + '.pdf')   
+        wb.close()
+      
+        App.quit()
         
-    #     App = xw.App()
-    #     sheet_num = len(excelSheets)
-    #     for i in range(1,sheet_num+1):   
-    #         wb.WorkSheets(i).Select()
-    #         try:
-    #             if os.path.exists(path + excelSheets[i-1] + '.pdf' ):
-    #                 os.remove(path + excelSheets[i-1] + '.pdf' )
-    #             wb.to_pdf(path=path + excelSheets[i-1] + '.pdf', include=i, exclude=None, exclude_start_string='#', show=False)
-    #         except:
-    #             print('PDFファイルが正常に保存できませんでした')
-    #             wb.Close()
-    #             excel.Quit() 
-    #             App.quit()
-            
-    #     wb.Close()
-    #     excel.Quit() 
-    #     App.quit()
-        
-    #     #debug
-    #     print('PDFファイル出力2終了：',datetime.datetime.now())
+        #debug
+        print('PDFファイル出力2終了：',datetime.datetime.now())
     
     ###############################################################
     # ディストラクタ
