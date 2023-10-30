@@ -53,9 +53,7 @@ if __name__ == "__main__":
     print('月次帳票出力処理開始：',dt_now) 
     
     input_symd = input('処理日を入力(yyyyMMdd 99999999は終了):') 
-    #input_comcd =  input('会社コードを入力(9999999 9999999は終了):')    
     
-    #if (input_symd != '99999999' and input_comcd != '9999999'):
     if input_symd != '99999999':
         year = int(input_symd[0:4])
         month = int(input_symd[4:6]) - 1

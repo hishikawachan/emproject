@@ -15,7 +15,6 @@
 # ======================================
 from datetime import datetime
 import datetime
-#import calendar
 import yaml 
 from emoneydbclass import DataBaseClass
 from emoneydbreportclass import dbReport
@@ -51,7 +50,7 @@ if __name__ == "__main__":
     
     input_symd = input('処理開始日を入力(yyyyMMdd 99999999は終了):') 
     input_eymd = input('処理終了日を入力(yyyyMMdd 99999999は終了):') 
-    input_comcd =  input('会社コードを入力(9999999 9999999は終了):')    
+    input_comcd = input('会社コードを入力(9999999 9999999は終了):')    
     
     if (input_symd != '99999999' and input_eymd  != '99999999' and input_comcd != '9999999'):
         s_year = int(input_symd[0:4])
@@ -60,16 +59,6 @@ if __name__ == "__main__":
         e_month = int(input_eymd[4:6]) 
         s_day = int(input_symd[6:8]) 
         e_day = int(input_eymd[6:8]) 
-        #前月の初日と最終日を求める
-        # d = datetime.datetime.today()
-        # today = d.date()        
-        # month = today.month - 1
-        # year = today.year
-        # s_day = 1
-        # if month <= 0:
-        #     month = 12
-        #     year = year - 1 
-        # e_day = calendar.monthrange(year, month)[1]
         
         # 基本情報取得
         with open('C:/emoney/emoney.yaml','r+',encoding="utf-8") as ry:

@@ -189,8 +189,6 @@ if __name__ == "__main__":
                     print('データ抽出終了 :',datetime.datetime.now())
                     
                     if len(output_rows) > 0: #対象データがあればDB書込み
-                        #debug  
-                        #print('DB出力開始 :',datetime.datetime.now())
                         
                         # データ編集/出力クラス初期化
                         res_ed = dbEditor(parm_data,output_rows)
@@ -208,9 +206,7 @@ if __name__ == "__main__":
                             #print('ヤマトフィナンシャルデータ処理開始')
                             res_cont = res_ed.yamato_edit(parm_data)
                             
-                        del res_ed
-                        #debug  
-                        #print('DB出力終了 :',datetime.datetime.now())                    
+                        del res_ed     
                         #
                         # res_cont[0] : 結果ステータス
                         # res_cont[1] : DB 出力件数
@@ -219,10 +215,7 @@ if __name__ == "__main__":
                         #
                         if res_cont[0] != 0:
                             print('データベースの出力失敗 status: ',res_cont[0])
-                        else:                        
-                            #帳票作成クラス初期化~帳票出力
-                            #debug  
-                            #print('帳票出力開始 :',datetime.datetime.now())            
+                        else:                       
                             
                             resdbrep = dbReport(parm_data)
                             res_cont = resdbrep.main()
@@ -231,9 +224,7 @@ if __name__ == "__main__":
                             resdb = DataBaseClass(parm_data) 
                             res_row = resdb.company_updateday_update(ret_rows[i][0])
                             del resdb
-                            
-                            #debug  
-                            #print('帳票出力終了 :',datetime.datetime.now())              
+                               
             i += 1
         # dt_now = datetime.datetime.now()
         # print('データベースバックアップ2開始：',dt_now) 

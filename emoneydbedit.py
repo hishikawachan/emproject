@@ -105,14 +105,10 @@ class dbEditor:
                     data_list.append(int(row[17])) #決済金額
                     sum_price += int(row[17])
                     
-                # データベースに存在していないかチェック 
-                #debug
-                #print('データダブりチェック(START)：',datetime.datetime.now())    
-                   
+                
+                #データダブりチェック廃止
                 #ck_count = self.resdb.db_wcheck1(data_list)    
                 ck_count = ()
-                #debug
-                #print('データダブりチェック(FINISH)：',datetime.datetime.now())      
 
                 #対象データが無ければ書き込み用配列にappend
                 if len(ck_count) == 0:
@@ -146,10 +142,8 @@ class dbEditor:
             edit_status = 0
             #Debug
             print('出力件数',out_count)
-            print('合計金額',sum_price)
-            # DBへデータ出力
-            #data_num = self.resdb.data_insert(output_list)               
-            #重複レコード排除モード
+            print('合計金額',sum_price)       
+            #重複レコード排除モードにてDBへ書き込み
             data_num = self.resdb.data_insert2(output_list)     
         del self.resdb
         #debug
@@ -171,8 +165,6 @@ class dbEditor:
         #debug
         print('売上データ出力処理開始(TOAMAS)：',datetime.datetime.now())     
         #
-        
-        
         for row in self.row:
             data_list = []
             if row[2] != '現金' and row[3] != '未了（不明）' and row[3] != '未了（未書込）' : #現段階では現金データは対象外とする。未了は対象外
@@ -233,8 +225,10 @@ class dbEditor:
                 #kingaku.replace(',','') 
                 data_list.append(kingaku_dec) #決済金額
                 sum_price += kingaku_dec
-                # データベースに存在していないかチェック
-                ck_count = self.resdb.db_wcheck2(data_list)            
+                
+                #データダブりチェック廃止
+                #ck_count = self.resdb.db_wcheck2(data_list)    
+                ck_count = ()           
 
                 #対象データが無ければ書き込み用配列にappend
                 if len(ck_count) == 0:
@@ -328,8 +322,10 @@ class dbEditor:
                         data_list.append(int(res))  #対象データ抽出のリターンを明細種別にセット         
                         data_list.append(int(row[3])) #決済金額
                         sum_price += int(row[3])
-                        # データベースに存在していないかチェック    
-                        ck_count = self.resdb.db_wcheck2(data_list)       
+                              
+                        #データダブりチェック廃止
+                        #ck_count = self.resdb.db_wcheck2(data_list)    
+                        ck_count = ()        
 
                         #対象データが無ければ書き込み用配列にappend
                         if len(ck_count) == 0:

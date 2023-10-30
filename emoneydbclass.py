@@ -380,7 +380,7 @@ class DataBaseClass:
                             where placecocode = {COCODE}
                     """ 
         #debug
-        print('設置場所番号抽出開始：',datetime.datetime.now())   
+        #print('設置場所番号抽出開始：',datetime.datetime.now())   
         
         ret_place = self.cur.excecuteQuery(sql_place)
         #print('抽出された設置場所コード',ret_place)
@@ -403,29 +403,7 @@ class DataBaseClass:
                             AND payplacecd IN({stmt})                            
                     """ %p_array        
         
-        # sql_place2 = f"""
-        #                     SELECT *
-        #                     FROM tbpaylog
-        #                     WHERE paydatedec >= '{sdate}'
-        #                     AND paydatedec <= '{edate}'
-        #                     AND payplacecd IN({stmt})                            
-        #             """ %p_array        
-        
         ret_rows = self.cur.excecuteQuery(sql_place2)
-        #debug
-        print('設置場所番号抽出終了：',datetime.datetime.now()) 
-        # print('取引明細 会社コードマージ開始：',datetime.datetime.now())         
-        # sql_paylog = f"""  
-        #                     SELECT *
-        #                     FROM tbpaylog as a
-        #                     inner join tbplace as c
-        #                          on (a.payplacecd = c.placecode)
-        #             """
-        
-        # ret_rows = self.cur.excecuteQuery(sql_paylog)
-        
-        # #debug
-        # print('取引明細 会社コードマージ終了：',datetime.datetime.now()) 
         
         colum_list = ['payyear','paymonth','payday','payhour','payminute', \
                     'paysecond','paypayno','payplacecd', 'paykbncd','paycardcd', \
@@ -436,7 +414,11 @@ class DataBaseClass:
         #改行コード外す
         df_paylog['placecocode'] = df_paylog['placecocode'].str.strip()
         df_paylog['placesisancode'] = df_paylog['placesisancode'].str.strip()
-        # # 対象日付及び対象会社で抽出
+        
+        #debug
+        #print('設置場所番号抽出終了：',datetime.datetime.now()) 
+        
+        # # 対象日付及び対象会社で抽出(廃止)
         # df_paylog = df_paylog.astype({'payyear':int,'paymonth': int,'payday':int,'placecocode':str})   
         
         # s_date = sdate.year * 10000 +  sdate.month * 100 + sdate.day
@@ -526,147 +508,6 @@ class DataBaseClass:
                 fp.write(dump_result) 
         
         return 0
-    ##############################################################
-    # 金種別時間別集計データ抽出
-    # ##############################################################
-    def kinsyu_dataget(self,COCODE,sdate,edate,kbn):
-        #会社コートをもとに設置場所番号を抽出
-        placecd_array = self.get_placecd(COCODE)
-        p_array = tuple(placecd_array)
-        stmt = ','.join(['%s'] * len(placecd_array))
-        
-        q_sql = f"""
-        SELECT paydatedec,payprice,payhour,count(tbpaylog.payprice)
-        FROM tbpaylog
-        WHERE paydatedec >= '{sdate}'
-        AND paydatedec <= '{edate}'
-        AND paykbncd = '{kbn}'
-        AND payplacecd IN({stmt})
-        GROUP BY paydatedec,payprice,payhour
-        """ %p_array        
-        
-        kinsyu_data = self.cur.excecuteQuery(q_sql) 
-        comb_list = []
-        sum_price_list = {}
-        #対象データがあった場合の処理
-        #if kinsyu_data != None:
-        if len(kinsyu_data) > 0:        
-            now_date = ''
-            now_price  = 0
-            now_hour = 0    
-            ix = 0  
-            a_list = []
-            b_list = [] 
-            comb_list = []
-            sum_list = []
-            sum_price_list = {} #金種別合計は辞書型で集計
-            #b_list = ['日付','単価','0時','1時','2時','3時','4時','5時','6時','7時','8時','9時','10時',11時','12時',
-            # '13時','14時','15時','16時','17時','18時','19時','20時','21時','22時','23時','24時',]
-            init_flg = '1' 
-            a_list  = [0 for i in range(27)]
-            sum_list  = [0 for i in range(27)]
-            #金種別データを横展開
-            for ix in kinsyu_data:
-                #日付が変わった時の処理
-                if str(ix[0]) != now_date:
-                    if init_flg == '1':
-                        now_date = str(ix[0]) 
-                        a_list.pop(0)
-                        a_list.insert(0,now_date)
-                    else:
-                        b_list.append(a_list)
-                        a_list  = [0 for i in range(27)]
-                        now_date = str(ix[0]) 
-                        a_list.pop(0)
-                        a_list.insert(0,now_date)  
-                        init_flg = '1'
-                #金種が変わった時の処理
-                if ix[1] != now_price:
-                    if init_flg == '1':
-                        now_price = ix[1] 
-                        a_list.pop(1)
-                        a_list.insert(1,now_price)
-                        #設定された金種が辞書に入っていなければ追加
-                        if now_price in sum_price_list.keys():
-                            pass
-                        else:
-                            sum_price_list[now_price] = 0
-                    else:
-                        b_list.append(a_list)
-                        a_list  = [0 for i in range(27)]
-                        now_price = ix[1]
-                        a_list.pop(0)
-                        a_list.insert(0,now_date)  
-                        a_list.pop(1)
-                        a_list.insert(1,now_price) 
-                        #設定された金種が辞書に入っていなければ追加
-                        if now_price in sum_price_list.keys():
-                            pass
-                        else:
-                            sum_price_list[now_price] = 0   
-                init_flg = '0'  
-                #時間毎のカウンター
-                if ix[2] != now_hour:
-                    hour_index = int(ix[2]) + 2
-                    a_list.pop(hour_index)
-                    a_list.insert(hour_index,int(ix[3]))
-                    count_data = sum_list.pop(hour_index)
-                    count_data += int(ix[3])
-                    sum_list.insert(hour_index,count_data) 
-                    #設定された金種のカウンターを加算して辞書を更新
-                    val = sum_price_list[now_price]
-                    val += int(ix[3])
-                    sum_price_list.pop(now_price)
-                    sum_price_list[now_price] = val                                
-            
-                b_list.append(a_list) #最終行の書き込み
-                b_list.append(sum_list) #時間別合計行の書き込み
-                    
-                #row_count = len(b_list)
-                
-                #データがある時間帯(カラム start~end)を確認
-                for ix in range(2,26):
-                    if sum_list[ix] != 0:
-                        start_index = ix
-                        break
-                    
-                for ix in reversed(range(2,26)):
-                    if sum_list[ix] != 0:
-                        end_index = ix
-                        break 
-                
-                #再度金種別データを再編成(zero除去)
-                coma_list = []
-                comb_list = []
-                #列名セット
-                coma_list.append('date')
-                coma_list.append('price')
-                for i in range(start_index,end_index+1):
-                        coma_list.append(i-2)
-                comb_list.append(coma_list) 
-                #金種別カウンターデータを有効領域で編集
-                coma_list = []     
-                now_date = ''
-                init_flg = '1'
-                for ix in b_list:
-                    if init_flg == '1':
-                        coma_list.append(ix[0])
-                        now_date = ix[0]
-                        init_flg = '0'
-                    else:
-                        if now_date != ix[0]:
-                            coma_list.append(ix[0])
-                            now_date = ix[0]
-                        else:
-                            coma_list.append('')
-                    coma_list.append(ix[1])
-                    for i in range(start_index,end_index+1):
-                        coma_list.append(ix[i])
-                    comb_list.append(coma_list) 
-                    coma_list = []                               
-        
-        return comb_list,sum_price_list
-        
     
     ###############################################################
     # ディストラクタ

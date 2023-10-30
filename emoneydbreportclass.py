@@ -81,21 +81,7 @@ class dbReport:
             # 金種別集計表作成
             ret = self.res_ed.print_kinsyu(dfgp,dfgp2,sheet_name)         
             return ret
-    
-    ######################################  
-    # 金種別集計表出力
-    # 新バージョン 2023/9/22
-    ######################################   
-    def kinsyu_print2(self,data_kinsyu,kinsyu_sum_data,flg):
-        if flg == '1':
-            sheet_name = '金種別(現金)'
-        else:
-            sheet_name = '金種別(電子決済)'
         
-        # 金種別集計表作成
-        ret = self.res_ed.print_kinsyu2(data_kinsyu,kinsyu_sum_data,sheet_name)       
-          
-        return ret
     ######################################  
     # 時間別集計表出力
     ######################################   
@@ -116,6 +102,7 @@ class dbReport:
             # 時間別集計表作成
             ret = self.res_ed.print_jikan(dfgp,sheet_name)          
             return ret
+        
     ######################################  
     # 設置場所別・時間別集計表出力（テストトライアル）
     ######################################   
@@ -135,7 +122,8 @@ class dbReport:
             dfgp = pd.pivot_table(dfx, index=['paydatedec','placename'], columns='payhour',values=['payprice'],aggfunc='sum',margins=True) 
             # 時間別集計表作成
             ret = self.res_ed.print_jikan2(dfgp,sheet_name)          
-            return ret                    
+            return ret     
+                       
     ######################################  
     # メイン
     ######################################           
@@ -144,9 +132,8 @@ class dbReport:
         #データベース操作クラス初期化
         resdb = DataBaseClass(self.parm_data)
     
-        input_symd = (self.parm_data[5].year * 10000)+(self.parm_data[5].month * 100)+(self.parm_data[5].day)
-        input_eymd = (self.parm_data[6].year * 10000)+(self.parm_data[6].month * 100)+(self.parm_data[6].day)
-        
+        #input_symd = (self.parm_data[5].year * 10000)+(self.parm_data[5].month * 100)+(self.parm_data[5].day)
+        #input_eymd = (self.parm_data[6].year * 10000)+(self.parm_data[6].month * 100)+(self.parm_data[6].day)
         
         SYEAR = self.parm_data[5].year
         SMONTH = self.parm_data[5].month
@@ -195,16 +182,7 @@ class dbReport:
         ret_place = resdb.place_get()
         ret_paylog = resdb.paylog_get(companycd,self.parm_data[5],self.parm_data[6])
         
-        #金種別データ取得新バージョン2023/9/22
-        # if self.test_flg == '1':
-        #     #現金データ作成
-        #     kbn = '1'
-        #     ret_kinsyu1,kinsyu_sum_data1 = resdb.kinsyu_dataget(companycd,input_symd,input_eymd,kbn)
-        #     #電子決済データ作成
-        #     kbn = '2'
-        #     ret_kinsyu2,kinsyu_sum_data2 = resdb.kinsyu_dataget(companycd,input_symd,input_eymd,kbn)
-        
-        # データ編集/出力クラス初期化
+        # データ編集/帳票出力クラス初期化
         del resdb
         self.res_ed = dbReportEdit(self.parm_data,file_out_path,SYEAR,SMONTH,SDAY,EYEAR,EMONTH,EDAY,prec,block)
         
@@ -230,8 +208,6 @@ class dbReport:
         ret = self.jikan_print(ret_paylog,'2') 
         
         # 出力したシートをPDFに変換
-        #self.res_ed.pdfconv(dir_out_filepath)
-        #debug
         self.res_ed.pdfconv(dir_out_filepath)
     
         #debug
