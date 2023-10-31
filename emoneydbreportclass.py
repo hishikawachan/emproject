@@ -102,6 +102,23 @@ class dbReport:
             # 時間別集計表作成
             ret = self.res_ed.print_jikan(dfgp,sheet_name)          
             return ret
+    
+    ######################################  
+    # 月別集計表出力
+    ######################################
+    def place_monthly_print(self,df_paylog,flg):
+        if flg == '1':
+            sheet_name = '月別(現金)'
+        else:
+            sheet_name = '月別(電子決済)'
+        
+        dfw0 = df_paylog[df_paylog['paykbncd'] == flg] 
+        
+        if len(dfw0) > 0:
+            dfgp = pd.pivot_table(dfw0, index=['payyear','paymonth'], columns=['placename'],values=['payprice'],aggfunc='sum',margins=True,margins_name='Total')         
+            ret = self.res_ed.print_place_monthly(dfgp,sheet_name)  
+        
+            return ret            
         
     ######################################  
     # 設置場所別・時間別集計表出力（テストトライアル）
@@ -131,10 +148,7 @@ class dbReport:
             
         #データベース操作クラス初期化
         resdb = DataBaseClass(self.parm_data)
-    
-        #input_symd = (self.parm_data[5].year * 10000)+(self.parm_data[5].month * 100)+(self.parm_data[5].day)
-        #input_eymd = (self.parm_data[6].year * 10000)+(self.parm_data[6].month * 100)+(self.parm_data[6].day)
-        
+
         SYEAR = self.parm_data[5].year
         SMONTH = self.parm_data[5].month
         SDAY = self.parm_data[5].day
@@ -144,7 +158,7 @@ class dbReport:
         
         companycd = self.parm_data[8]
         
-        #会社データ取得(指定)
+        #会社データ取得(会社コード指定)
         ret_rows = resdb.company_data_get(companycd)
         
         prec = ret_rows[0][2]
@@ -160,7 +174,8 @@ class dbReport:
         if os.path.exists(dir_out_filepath):
             pass
         else:
-            os.mkdir(dir_out_filepath)       
+            os.mkdir(dir_out_filepath) 
+        #出力Excelファイル名＋フォルダー設定      
         excel_file =  str(companycd) + '_'+str(SYEAR)+str(SMONTH)+str(SDAY)+'_'+str(EYEAR)+str(EMONTH)+str(EDAY)+'.xlsx'
         file_out_path = os.path.join(dir_out_filepath, excel_file)
     
@@ -181,6 +196,8 @@ class dbReport:
         ret_kbn = resdb.kbn_get()
         ret_place = resdb.place_get()
         ret_paylog = resdb.paylog_get(companycd,self.parm_data[5],self.parm_data[6])
+        #月別データ
+        ret_paylog2 = resdb.paylog_sum_get(companycd,self.parm_data[5],self.parm_data[6])
         
         # データ編集/帳票出力クラス初期化
         del resdb
@@ -206,6 +223,12 @@ class dbReport:
         ret = self.jikan_print(ret_paylog,'1')  
         # 電子決済データの抽出
         ret = self.jikan_print(ret_paylog,'2') 
+        
+        # 月別データの生成
+        # 現金データの抽出
+        ret = self.place_monthly_print(ret_paylog2,'1')  
+        # 電子決済データの抽出
+        ret = self.place_monthly_print(ret_paylog2,'2') 
         
         # 出力したシートをPDFに変換
         self.res_ed.pdfconv(dir_out_filepath)

@@ -430,54 +430,101 @@ class DataBaseClass:
     ###############################################################
     # 条件に合う取引明細データの売上金額を年・月で集計
     ###############################################################
-    def paylog_sum_get(self,COCODE,sdate,edate):  
-        syear = sdate.year
-        eyear = edate.year
-        smonth = sdate.month
-        emonth = edate.month        
-        years = edate.year - sdate.year
-        if years < 2 and years >=0:    #2年以上のデータは対象外
-            sql_paylog = f"""  
-                                SELECT *
-                                FROM tbpaylog as a
-                                inner join tbplace as c
-                                    on (a.payplacecd = c.placecode)
-                        """
-            #debug
-            print('売上履歴データ処理２開始：',datetime.datetime.now())   
+    # def paylog_sum_get(self,COCODE,sdate,edate):  
+    #     syear = sdate.year
+    #     eyear = edate.year
+    #     smonth = sdate.month
+    #     emonth = edate.month        
+    #     years = edate.year - sdate.year
+    #     if years < 2 and years >=0:    #2年以上のデータは対象外
+    #         sql_paylog = f"""  
+    #                             SELECT *
+    #                             FROM tbpaylog as a
+    #                             inner join tbplace as c
+    #                                 on (a.payplacecd = c.placecode)
+    #                     """
+    #         #debug
+    #         print('売上履歴データ処理２開始：',datetime.datetime.now())   
             
-            ret_rows = self.cur.excecuteQuery(sql_paylog) 
+    #         ret_rows = self.cur.excecuteQuery(sql_paylog) 
             
-            #debug
-            print('売上履歴データ処理２終了：',datetime.datetime.now())   
+    #         #debug
+    #         print('売上履歴データ処理２終了：',datetime.datetime.now())   
             
-            colum_list = ['payyear','paymonth','payday','payhour','payminute', \
-                        'paysecond','paypayno','payplacecd', 'paykbncd','paycardcd', \
-                        'payprice','paydatedec','paydatestr','paytimestr', \
-                        'paydatedt','paydateholidayflg','paydateholiday', \
-                        'placecode','placename','placesisancode','placecocode']       
+    #         colum_list = ['payyear','paymonth','payday','payhour','payminute', \
+    #                     'paysecond','paypayno','payplacecd', 'paykbncd','paycardcd', \
+    #                     'payprice','paydatedec','paydatestr','paytimestr', \
+    #                     'paydatedt','paydateholidayflg','paydateholiday', \
+    #                     'placecode','placename','placesisancode','placecocode']       
             
-            df_paylog = pd.DataFrame(ret_rows,columns = colum_list)
-            #改行コード外す
-            df_paylog['placecocode'] = df_paylog['placecocode'].str.strip() 
-            df_paylog = df_paylog.astype({'payyear':int,'paymonth': int}) 
+    #         df_paylog = pd.DataFrame(ret_rows,columns = colum_list)
+    #         #改行コード外す
+    #         df_paylog['placecocode'] = df_paylog['placecocode'].str.strip() 
+    #         df_paylog = df_paylog.astype({'payyear':int,'paymonth': int}) 
             
-            df_paylog = df_paylog[(df_paylog['placecocode'] == COCODE)] #会社コード抽出 
+    #         df_paylog = df_paylog[(df_paylog['placecocode'] == COCODE)] #会社コード抽出 
             
-            if syear < eyear:            
-                df_paylog1 = df_paylog[(df_paylog['payyear'] == syear) & (df_paylog['paymonth'] >= smonth)]#開始年と等しく、開始月以上
-                df_paylog3 = df_paylog[(df_paylog['payyear'] == eyear) & (df_paylog['paymonth'] <= emonth)]#終了年と等しく、終了月以下
-                df_paylog5 = pd.concat([df_paylog1, df_paylog3])              
-            else:
-                if syear == eyear:
-                    df_paylog5 = df_paylog[(df_paylog['paymonth'] >= sdate.month) & (df_paylog['paymonth'] <= edate.month)] #開始月以上、終了月以下
+    #         if syear < eyear:            
+    #             df_paylog1 = df_paylog[(df_paylog['payyear'] == syear) & (df_paylog['paymonth'] >= smonth)]#開始年と等しく、開始月以上
+    #             df_paylog3 = df_paylog[(df_paylog['payyear'] == eyear) & (df_paylog['paymonth'] <= emonth)]#終了年と等しく、終了月以下
+    #             df_paylog5 = pd.concat([df_paylog1, df_paylog3])              
+    #         else:
+    #             if syear == eyear:
+    #                 df_paylog5 = df_paylog[(df_paylog['paymonth'] >= sdate.month) & (df_paylog['paymonth'] <= edate.month)] #開始月以上、終了月以下
  
-            df_paylog6 = pd.pivot_table(df_paylog5, index=['placename'], columns=['payyear','paymonth'],values=['payprice'],aggfunc='sum',margins=True,margins_name='Total')  #クロス集計 
-        else:
-            ret_rows = [9,]    
-            df_paylog6 = pd.DataFrame(ret_rows,columns = 'errcode')
+    #         df_paylog6 = pd.pivot_table(df_paylog5, index=['placename'], columns=['payyear','paymonth'],values=['payprice'],aggfunc='sum',margins=True,margins_name='Total')  #クロス集計 
+    #     else:
+    #         ret_rows = [9,]    
+    #         df_paylog6 = pd.DataFrame(ret_rows,columns = 'errcode')
         
-        return df_paylog6
+    #     return df_paylog6
+    
+    def paylog_sum_get(self,COCODE,sdate,edate):
+        sql_place = f"""  
+                            SELECT placecode
+                            FROM tbplace 
+                            where placecocode = {COCODE}
+                    """ 
+        # 指定された会社コードで設置先コード取得
+        ret_place = self.cur.excecuteQuery(sql_place)
+        #print('抽出された設置場所コード',ret_place)
+        #s_date = sdate.year * 10000 +  sdate.month * 100 + sdate.day
+        s_date = 20220501
+        e_date = edate.year * 10000 +  edate.month * 100 + edate.day
+        
+        ret_place2 = []
+        for i in ret_place:
+            ret_place2.append(int(i[0]))
+        
+        #対象設置先コード、日付で売上履歴データ取得            
+        p_array = tuple(ret_place2)
+        stmt = ','.join(['%s'] * len(ret_place2))
+        sql_place2 = f"""
+                            SELECT *
+                            FROM tbpaylog as a
+                            inner join tbplace as c
+                                 on (a.payplacecd = c.placecode)
+                            WHERE paydatedec >= '{s_date}'
+                            AND paydatedec <= '{e_date}'
+                            AND payplacecd IN({stmt})                            
+                    """ %p_array        
+        
+        ret_rows = self.cur.excecuteQuery(sql_place2)
+        
+        colum_list = ['payyear','paymonth','payday','payhour','payminute', \
+                    'paysecond','paypayno','payplacecd', 'paykbncd','paycardcd', \
+                    'payprice','paydatedec','paydatestr','paytimestr', \
+                    'paydatedt','paydateholidayflg','paydateholiday', \
+                    'placecode','placename','placesisancode','placecocode']
+        df_paylog = pd.DataFrame(ret_rows,columns = colum_list) 
+        #改行コード外す
+        df_paylog['placecocode'] = df_paylog['placecocode'].str.strip()
+        df_paylog['placesisancode'] = df_paylog['placesisancode'].str.strip()
+        
+        #df_paylog = pd.pivot_table(df_paylog, index=['placename'], columns=['payyear','paymonth'],values=['payprice'],aggfunc='sum',margins=True,margins_name='Total')   
+        #df_paylog = pd.pivot_table(df_paylog, index=['payyear','paymonth'], columns=['placename'],values=['payprice'],aggfunc='sum',margins=True,margins_name='Total') 
+        
+        return df_paylog
     
     ##############################################################
     # データベースバックアップ

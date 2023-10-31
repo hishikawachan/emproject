@@ -520,6 +520,82 @@ class dbReportEdit:
         print('時間別集計表出力終了：',datetime.datetime.now())      
         
         return 0
+    
+    ####################
+    # 月別集計表出力
+    ####################
+    def print_place_monthly(self,df_paylog,sheet_name): 
+        #debug
+        print('月別設置場所別集計表出力開始：',datetime.datetime.now())      
+        with pd.ExcelWriter(f'{self.file_out_path}', mode='a') as writer:
+            df_paylog.to_excel(writer,startrow=3,startcol=1,sheet_name=sheet_name) 
+        wb = openpyxl.load_workbook(f'{self.file_out_path}')
+        sh = wb[sheet_name]
+        
+        #用紙設定
+        wps = sh.page_setup
+        # 用紙サイズを設定
+        wps.paperSize = sh.PAPERSIZE_A3
+        # 印刷の向きを設定
+        wps.orientation = sh.ORIENTATION_LANDSCAPE
+            
+        sh.cell(row=1, column=2).value='月別設置場所別集計表'
+        sh.cell(row=1, column=3).value=sheet_name
+            
+        str1 = (f'{self.SYEAR} 年 {self.SMONTH} 月 {self.SDAY} 日  ～')
+        str2 = (f'{self.EYEAR} 年 {self.EMONTH} 月 {self.EDAY} 日')
+        sh.cell(row=2, column=2).value=str1
+        sh.cell(row=2, column=3).value=str2
+        
+        # 最終行・列数の取得
+        maxr = sh.max_row
+        maxc = sh.max_column
+        #表記を修正
+        sh.cell(row=6, column=2).value='決済年'
+        sh.cell(row=6, column=3).value='決済月'  
+        sh.cell(row=5, column=3).value=''  
+        sh.cell(row=4, column=4).value='設置場所' 
+        sh.cell(row=maxr,column=2).value = '合計'
+        sh.cell(row=5,column=maxc).value = '合計'
+        
+        #金額の表示フォーマットを変更
+        for i in range(4,maxr+1):
+            for j in range(4,maxc+1):
+                sh.cell(row=i,column=j).number_format = "#,##0"
+        
+        #タイトルの文字サイズ変更
+        font = Font(name='Yu Gothic', sz = 8)
+        for j in range(4,maxc):        
+            sh.cell(row=5,column=j).font = font
+        
+        # セル幅を自動調整
+        for col in sh.columns:
+            max_length = 0
+            for cell in col:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))  
+                adjusted_width = (max_length + 1) * 1.5 
+                sh.column_dimensions[col[0].column_letter].width = adjusted_width
+        
+        #部分的にセル幅を修正
+        sh.column_dimensions['B'].width = 20
+        sh.column_dimensions['C'].width = 15     
+        
+        #罫線引く
+        side = Side(style='thin', color='000000')
+        border = Border(top=side, bottom=side, left=side, right=side)
+            
+        for row_num in range(6,maxr+1):    
+            for col_num in range(4,maxc+1):
+                sh.cell(row=row_num ,column=col_num).border = border
+
+        wb.save(f'{self.file_out_path}')
+        
+        #debug
+        print('月別設置場所別集計表出力終了：',datetime.datetime.now())   
+        
+        return 0
+    
     #
     # 時間別集計表出力（テストトライアル）
     #
