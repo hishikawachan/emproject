@@ -556,7 +556,7 @@ class dbReportEdit:
         sh.cell(row=5, column=3).value=''  
         sh.cell(row=4, column=4).value='設置場所' 
         sh.cell(row=maxr,column=2).value = '合計'
-        sh.cell(row=5,column=maxc).value = '合計'
+        sh.cell(row=5,column=maxc).value = '月合計'
         
         #金額の表示フォーマットを変更
         for i in range(4,maxr+1):
@@ -578,7 +578,7 @@ class dbReportEdit:
                 sh.column_dimensions[col[0].column_letter].width = adjusted_width
         
         #部分的にセル幅を修正
-        sh.column_dimensions['B'].width = 20
+        sh.column_dimensions['B'].width = 24
         sh.column_dimensions['C'].width = 15     
         
         #罫線引く
