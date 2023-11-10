@@ -264,8 +264,8 @@ class dbEditor:
             #Debug
             print('出力件数',out_count)
             print('合計金額',sum_price)
-            # DBへデータ出力
-            data_num = self.resdb.data_insert(output_list)           
+            # DBへデータ出力 20231106 ignore版に変更
+            data_num = self.resdb.data_insert2(output_list)           
         
         del self.resdb
         #debug

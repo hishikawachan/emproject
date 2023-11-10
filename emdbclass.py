@@ -19,12 +19,14 @@ from datetime import datetime
 import datetime
 import calendar
 import os
-from dateutil.relativedelta import relativedelta
+import yaml
+import csv
 import jpholiday
 import subprocess
 import pandas as pd
-from emoneydbaccess import dbAccessor
-import emoneyweather as ew
+from emdbaccess import dbAccessor
+#import emoneyweather as ew
+import emweather as ew
 
 class DataBaseClass:
     #####################################
@@ -39,16 +41,30 @@ class DataBaseClass:
     # [5]:帳票ファイル出力先ディレクトリ
     #
     #####################################
-    def __init__(self,parm_list):
+    def __init__(self):
+        # 基本情報取得
+        with open('C:/emoney/emoney.yaml','r+',encoding="utf-8") as ry:
+            config_yaml = yaml.safe_load(ry)
+            self.dbip = config_yaml['dbip']
+            self.dbname = config_yaml['dbmarianame']
+            self.dbport = config_yaml['dbport']        
+            self.dbuser = config_yaml['dbuser']
+            self.dbpw = config_yaml['dbpw']
+            self.outpath = config_yaml['dir_filepath']
+            
         # DB接続
-        self.cur = dbAccessor(parm_list[1], parm_list[2], parm_list[0], parm_list[3], parm_list[4])
-        self.dbip = parm_list[0]
-        self.dbmarianame = parm_list[1]
-        self.dbport = parm_list[2]        
-        self.dbuser = parm_list[3]
-        self.dbpw = parm_list[4]
-        self.filepath = parm_list[5]
-        
+        self.cur = dbAccessor(self.dbname,  self.dbport, self.dbip, self.dbuser, self.dbpw)
+        # DBバックアップ        
+        res = self.database_backup()     
+    
+    #####################################
+    # テーブル名一覧を取得
+    #####################################
+    def init_return(self):
+        parm_list = []
+        parm_list.append(self.outpath)
+        return parm_list    
+    
     #####################################
     # テーブル名一覧を取得
     #####################################
@@ -106,6 +122,7 @@ class DataBaseClass:
             return 0
         else:
             num = self.cur.excecuteInsertmany(output_sql,row) 
+            
             return num    
     ####################################    
     #　実データ書き込み IGNORE仕様
@@ -113,14 +130,25 @@ class DataBaseClass:
     def data_insert2(self,row):
         output_sql = """
             INSERT IGNORE INTO tbpaylog
-            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, \
-                   %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, \
+                    %s, %s, %s, %s, %s, %s, %s)
         """
         if len(row) == 0:
             return 0
         else:
             num = self.cur.excecuteInsertmany(output_sql,row) 
-            return num    
+            return num   
+        
+    ####################################    
+    #　Logデータクリア
+    ####################################
+    def logdata_delete(self):
+        q_sql = f"""
+                    delete from tbloglog
+                """   
+        res = self.cur.excecuteDelete(q_sql)
+        return res
+    
     #####################################
     # ヤマトフィナンシャルデータからニューツルミ1階分のみ検出
     #####################################
@@ -211,6 +239,7 @@ class DataBaseClass:
             """                
         ret_rows = self.cur.excecuteQuery(q_sql)
         return ret_rows
+    
     ######################################
     #対象年月の最新気象データに更新            
     ######################################
@@ -227,19 +256,13 @@ class DataBaseClass:
 
         """ 
         num1 = self.cur.excecuteDelete(sql)
-        #debug
-        #print('削除件数: ',num)
-        #debug
-        # 最新データ出力
+        
         output_sql = """
             INSERT INTO tbweather
-            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 
         """
         num2 = self.cur.excecuteInsertmany(output_sql,data_list) 
-        #debug
-        #print('出力件数: ',num)
-        #debug         
 
         return num2,num1
     ####################################
@@ -259,6 +282,50 @@ class DataBaseClass:
         ret_rows = self.cur.excecuteQuery(sql)
         
         return ret_rows
+    
+    ####################################
+    # 気象情報取得 期間を絞ったデータ取得    
+    ###################################        
+    def weather_get2(self):        
+        # 気象データ読む
+        sql = f"""  
+                    SELECT *
+                    FROM tbweather
+            """
+        ret_rows = self.cur.excecuteQuery(sql)
+        
+        return ret_rows
+    
+    ####################################
+    # 気象情報取得 日付範囲指定での抽出    
+    ###################################        
+    def weather_get3(self,sdate,edate,prec,block):        
+        # 気象データ読む
+        sql = f"""  
+                    SELECT *
+                    FROM tbweather
+                    WHERE date BETWEEN '{sdate}' AND '{edate}'
+                    AND   prec = {prec}
+                    AND   block = {block}
+            """
+        ret_rows = self.cur.excecuteQuery(sql)
+        
+        return ret_rows
+    
+    ####################################
+    # 気象情報取得 データ修正    
+    ###################################        
+    def weather_update(self,update_date,day,year,month):      
+    
+        s_sql = f"""
+                UPDATE tbweather 
+                SET date = '{update_date}'                              
+                WHERE day = {day}
+                AND   year = {year}
+                AND   month = {month}
+                """            
+        ret_rows = self.cur.excecuteUpdate(s_sql)     
+    
     ###############################################################
     # 会社データから全データ取得
     ############################################################### 
@@ -279,6 +346,252 @@ class DataBaseClass:
         ret_rows = self.cur.excecuteQuery(s_sql) 
         
         return ret_rows
+    
+    ###############################################################
+    # 対象会社のcsvファイル読込み及びDB出力　売上明細
+    ############################################################### 
+    def uriagemeisai_output(self, companyid, sdate, edate, f_name):
+        # 入力ファイル名の取得
+        file_name = f_name.strip()
+        input_filepath = os.path.join(self.outpath,file_name)  
+        
+        start_date = sdate
+        end_date = edate
+        out_err = 0
+        in_count = 0
+        out_count = 0
+        sum_price = 0
+    
+        with open(input_filepath, encoding = 'shift-jis') as f:
+            reader = csv.reader(f)            
+            for row in reader :
+                #sum_price = 0
+                data_list = []
+                # 日付範囲の判定
+                # 決済日時取得
+                if in_count == 0:
+                    in_count += 1
+                else:                
+                    date_time = row[18]
+                    verify_date = datetime.date(int(date_time[0:4]), int(date_time[4:6]), int(date_time[6:8]))
+                    if (verify_date >= start_date) and (verify_date <= end_date) and (row[8][0:7] ==  companyid):
+                        #練習データを排除する
+                        if int(row[14]) <= 10: #明細種別11以上は練習データ
+                            data_list = []
+                            date_time = row[18]
+                            data_list.append(int(date_time[0:4]))#決済年
+                            data_list.append(int(date_time[4:6]))#決済月
+                            data_list.append(int(date_time[6:8]))#決済日
+                            data_list.append(int(date_time[8:10]))#決済時
+                            data_list.append(int(date_time[10:12]))#決済分
+                            data_list.append(int(date_time[12:14]))#決済秒
+                            
+                            kyear = int(date_time[0:4])#決済年
+                            kmonth = int(date_time[4:6])#決済月
+                            kday = int(date_time[6:8])#決済日
+                            khour = int(date_time[8:10])#決済時
+                            kminute = int(date_time[10:12])#決済分
+                            ksecond = int(date_time[12:14])#決済秒            
+                            
+                            data_list.append(int(date_time[14:16]))#決済番号
+                            data_list.append(int(row[2])) #設置場所番号
+                            #data_list.append(str(row[12])) #明細区分番号
+                            if row[12] == '00':#景品データは現金に変更
+                                data_list.append('1')
+                            else:
+                                if row[12] == '01':
+                                    data_list.append('1')
+                                else:
+                                    if row[12] == '02':
+                                        data_list.append('2')
+                                    else:
+                                        data_list.append('F')                            
+                            #景品のデータは現金に切替
+                            if row[12] == '00':
+                                data_list.append(5)
+                            else:                    
+                                if row[12] == '01': #現金のデータは明細種別を"5"にセット    
+                                    data_list.append(5)
+                                else:    
+                                    data_list.append(int(row[14])) #明細種別番号               
+                                
+                            #景品のデータは1000円に切替
+                            if row[12] == '00':    
+                                data_list.append(1000) #決済金額
+                                sum_price += 1000
+                            else:
+                                data_list.append(int(row[17])) #決済金額
+                                sum_price += int(row[17])
+                                
+                            #検索日付・時間セット
+                            res_list = self.date_set(kyear,kmonth,kday,khour,kminute,ksecond)
+                            data_list.append(res_list[0])#日付（整数）
+                            #data_list.append(res_list[1])#日付（ハイフン付文字列）
+                            data_list.append(res_list[2])#時間（文字列）
+                            data_list.append(res_list[3])#時間（文字列） 
+                            #曜日・祝日セット
+                            res_list = self.week_set(kyear,kmonth,kday)
+                            data_list.append(res_list[0])#曜日コード
+                            data_list.append(res_list[1]) #祝日フラグ 祝日なら'1' それ以外は'0'  
+                            data_list.append(res_list[2])#祝日名（空白有）        
+                            
+                            #debug 
+                            if in_count % 100 == 0: #100件処理毎に表示
+                                print('データ入力件数',in_count)
+                            in_count += 1
+                            
+                            #DBへの書き込み(1件ずつ書込む方式)
+                            data_list2 = []
+                            data_list2.append(data_list)                        
+                            data_num = self.data_insert2(data_list2)  
+                            out_count +=  data_num   
+                            
+                            #debug 
+                            if out_count % 100 == 0: #100件処理毎に表示
+                                print('データ出力件数',out_count)
+                                        
+                    else:
+                        out_err += 1        
+                    
+        db_updatedate = date_time[0:4] + '-' + date_time[4:6] + '-' + date_time[6:8]
+                        
+        # if out_err > 0:
+        #         print('入力不可件数：',out_err)
+                
+        if in_count == 0 and out_err == 0:
+            edit_status = 9
+        else:
+            edit_status = 0
+            
+        #Debug
+        print('出力件数',in_count-1)
+        print('合計金額',sum_price)      
+       
+        return edit_status,out_count,out_err,db_updatedate        
+    
+    ###############################################################
+    # 対象会社のcsvファイル読込み　TOAMAS
+    ############################################################### 
+    def income_output(self,companyid, sdate, edate, f_name):
+        # 入力ファイル名の取得
+        file_name = f_name.strip()
+        input_filepath = os.path.join(self.outpath,file_name)  
+        
+        start_date = sdate
+        end_date = edate
+        out_err = 0
+        in_count = 0
+        out_count = 0
+        sum_price = 0        
+    
+        with open(input_filepath, encoding = 'UTF-8') as f:
+            reader = csv.reader(f)
+            for row in reader :
+                if row[2] != '現金' and row[3] != '未了（不明）' and row[3] != '未了（未書込）' : #現段階では現金データは対象外とする。未了は対象外
+                    # 日付範囲の判定
+                    # 決済日時取得
+                    if in_count == 0:
+                        in_count += 1
+                    else:
+                        date_time = row[0]
+                        verify_date = datetime.date(int(date_time[0:4]), int(date_time[5:7]), int(date_time[8:10]))
+                        if (verify_date >= start_date) and (verify_date <= end_date) and (row[8][0:7] ==  companyid):
+                            data_list = []                   
+                            date_time = row[0]
+                            #売上日を日付と時間に分け,更に'/'と':'で分けて数字にする
+                            datetime_list = date_time.split()
+                            datetime_date = datetime_list[0].split('-')
+                            datetime_time = datetime_list[1].split(':')       
+                                    
+                            data_list.append(int(datetime_date[0]))#決済年
+                            data_list.append(int(datetime_date[1]))#決済月
+                            data_list.append(int(datetime_date[2]))#決済日
+                            data_list.append(int(datetime_time[0]))#決済時
+                            data_list.append(int(datetime_time[1]))#決済分
+                            data_list.append(int(datetime_time[2]))#決済秒
+                            
+                            kyear = int(datetime_date[0])#決済年
+                            kmonth = int(datetime_date[1])#決済月
+                            kday = int(datetime_date[2])#決済日
+                            khour = int(datetime_time[0])#決済時
+                            kminute = int(datetime_time[1])#決済分
+                            ksecond = int(datetime_time[2])#決済秒    
+                            
+                            data_list.append(int(row[15])) #決済番号
+                            
+                            #設置場所資産番号から設置場所番号を検索
+                            ret_rows = self.set_placecd(row[8])
+                            data_list.append(ret_rows[0][0])      
+                            
+                            #明細区分番号
+                            if row[2] == '現金':
+                                data_list.append('1') 
+                            else:
+                                data_list.append('2') 
+                            
+                            #明細種別名称から明細種別番号を検索
+                            ret_rows = self.set_meisaisyubetu(row[2])
+                            data_list.append(ret_rows[0][0])             
+                            
+                            #決済金額(カンマ除去)
+                            kingaku_str = ""
+                            max_len = len(row[1])
+                            kingaku = row[1]
+                            if max_len >= 4:
+                                for i in range(0,max_len):
+                                    if kingaku[i] != ',':
+                                        kingaku_str = kingaku_str + str(kingaku[i])
+                            else:
+                                kingaku_str = int(row[1])
+                                
+                            kingaku_dec = int(kingaku_str)
+                            data_list.append(kingaku_dec) #決済金額
+                            sum_price += kingaku_dec                            
+                            
+                            #検索日付・時間セット
+                            res_list = self.date_set(kyear,kmonth,kday,khour,kminute,ksecond)
+                            data_list.append(res_list[0])#日付（整数）
+                            #data_list.append(res_list[1])#日付（ハイフン付文字列）
+                            data_list.append(res_list[2])#時間（文字列）
+                            data_list.append(res_list[3])#時間（文字列） 
+                            #曜日・祝日セット
+                            res_list = self.week_set(kyear,kmonth,kday)
+                            data_list.append(res_list[0])#曜日コード
+                            data_list.append(res_list[1]) #祝日フラグ 祝日なら'1' それ以外は'0'  
+                            data_list.append(res_list[2])#祝日名（空白有）                
+                    
+                            #debug 
+                            if in_count % 100 == 0:
+                                print('データ入力件数',in_count) #100件処理毎に表示
+                            in_count += 1
+                            
+                            #DBへの書き込み(1件ずつ書込む方式)
+                            data_list2 = []
+                            data_list2.append(data_list)               
+                            data_num = self.data_insert2(data_list2)                         
+                            out_count +=  data_num   
+                                                        
+                            #debug 
+                            if out_count % 100 == 0: #100件処理毎に表示
+                                print('データ出力件数',out_count)
+                        else:
+                            out_err += 1
+                        
+                    
+            db_updatedate = datetime_date[0] + '-' + datetime_date[1] + '-' + datetime_date[2]
+                        
+            # if out_err > 0:
+            #         print('入力不可件数：',out_err)
+                    
+            if out_count == 0 and out_err == 0:
+                edit_status = 9
+            else:
+                edit_status = 0
+                #Debug
+                print('出力件数',out_count-1)
+                print('合計金額',sum_price)
+            
+            return edit_status,out_count,db_updatedate  
     
     ###############################################################
     # 会社データの次回処理予定日、対象範囲を更新
@@ -363,8 +676,6 @@ class DataBaseClass:
                             FROM tbplace 
                             where placecocode = {COCODE}
                     """ 
-        #debug
-        #print('設置場所番号抽出開始：',datetime.datetime.now())   
         
         ret_place = self.cur.excecuteQuery(sql_place)
         #print('抽出された設置場所コード',ret_place)
@@ -399,71 +710,12 @@ class DataBaseClass:
         df_paylog['placecocode'] = df_paylog['placecocode'].str.strip()
         df_paylog['placesisancode'] = df_paylog['placesisancode'].str.strip()
         
-        #debug
-        #print('設置場所番号抽出終了：',datetime.datetime.now()) 
-        
-        # # 対象日付及び対象会社で抽出(廃止)
-        # df_paylog = df_paylog.astype({'payyear':int,'paymonth': int,'payday':int,'placecocode':str})   
-        
-        # s_date = sdate.year * 10000 +  sdate.month * 100 + sdate.day
-        # e_date = edate.year * 10000 +  edate.month * 100 + edate.day
-        
-        # df_paylog1 = df_paylog[(df_paylog['paydatedec'] >= s_date) & (df_paylog['paydatedec'] <= e_date) & (df_paylog['placecocode'] == COCODE)]   
-        
         return df_paylog
-    ###############################################################
-    # 条件に合う取引明細データの売上金額を年・月で集計
-    ###############################################################
-    # def paylog_sum_get(self,COCODE,sdate,edate):  
-    #     syear = sdate.year
-    #     eyear = edate.year
-    #     smonth = sdate.month
-    #     emonth = edate.month        
-    #     years = edate.year - sdate.year
-    #     if years < 2 and years >=0:    #2年以上のデータは対象外
-    #         sql_paylog = f"""  
-    #                             SELECT *
-    #                             FROM tbpaylog as a
-    #                             inner join tbplace as c
-    #                                 on (a.payplacecd = c.placecode)
-    #                     """
-    #         #debug
-    #         print('売上履歴データ処理２開始：',datetime.datetime.now())   
-            
-    #         ret_rows = self.cur.excecuteQuery(sql_paylog) 
-            
-    #         #debug
-    #         print('売上履歴データ処理２終了：',datetime.datetime.now())   
-            
-    #         colum_list = ['payyear','paymonth','payday','payhour','payminute', \
-    #                     'paysecond','paypayno','payplacecd', 'paykbncd','paycardcd', \
-    #                     'payprice','paydatedec','paydatestr','paytimestr', \
-    #                     'paydatedt','paydateholidayflg','paydateholiday', \
-    #                     'placecode','placename','placesisancode','placecocode']       
-            
-    #         df_paylog = pd.DataFrame(ret_rows,columns = colum_list)
-    #         #改行コード外す
-    #         df_paylog['placecocode'] = df_paylog['placecocode'].str.strip() 
-    #         df_paylog = df_paylog.astype({'payyear':int,'paymonth': int}) 
-            
-    #         df_paylog = df_paylog[(df_paylog['placecocode'] == COCODE)] #会社コード抽出 
-            
-    #         if syear < eyear:            
-    #             df_paylog1 = df_paylog[(df_paylog['payyear'] == syear) & (df_paylog['paymonth'] >= smonth)]#開始年と等しく、開始月以上
-    #             df_paylog3 = df_paylog[(df_paylog['payyear'] == eyear) & (df_paylog['paymonth'] <= emonth)]#終了年と等しく、終了月以下
-    #             df_paylog5 = pd.concat([df_paylog1, df_paylog3])              
-    #         else:
-    #             if syear == eyear:
-    #                 df_paylog5 = df_paylog[(df_paylog['paymonth'] >= sdate.month) & (df_paylog['paymonth'] <= edate.month)] #開始月以上、終了月以下
- 
-    #         df_paylog6 = pd.pivot_table(df_paylog5, index=['placename'], columns=['payyear','paymonth'],values=['payprice'],aggfunc='sum',margins=True,margins_name='Total')  #クロス集計 
-    #     else:
-    #         ret_rows = [9,]    
-    #         df_paylog6 = pd.DataFrame(ret_rows,columns = 'errcode')
-        
-    #     return df_paylog6
     
-    def paylog_sum_get(self,COCODE,sdate,edate):
+    ###############################################################
+    # 月別レポート用取引明細データをDataFrameで返す    # 
+    ###############################################################  
+    def paylog_sum_get(self, COCODE,  edate):
         sql_place = f"""  
                             SELECT placecode
                             FROM tbplace 
@@ -503,10 +755,7 @@ class DataBaseClass:
         df_paylog = pd.DataFrame(ret_rows,columns = colum_list) 
         #改行コード外す
         df_paylog['placecocode'] = df_paylog['placecocode'].str.strip()
-        df_paylog['placesisancode'] = df_paylog['placesisancode'].str.strip()
-        
-        #df_paylog = pd.pivot_table(df_paylog, index=['placename'], columns=['payyear','paymonth'],values=['payprice'],aggfunc='sum',margins=True,margins_name='Total')   
-        #df_paylog = pd.pivot_table(df_paylog, index=['payyear','paymonth'], columns=['placename'],values=['payprice'],aggfunc='sum',margins=True,margins_name='Total') 
+        df_paylog['placesisancode'] = df_paylog['placesisancode'].str.strip() 
         
         return df_paylog
     
@@ -523,7 +772,7 @@ class DataBaseClass:
         dump_command = [
         'mysqldump',
         '--host=' + self.dbip,
-        '--user=' + self.dbmarianame,
+        '--user=' + self.dbuser,
         '--password=' + self.dbpw,
         '--all-databases'
         ]
@@ -534,7 +783,7 @@ class DataBaseClass:
             dump_result = dump_process.communicate()[0]
             str_date = str(dt_now.month) + str(dt_now.day) + str(dt_now.hour) +  str(dt_now.minute)
             file_name2 = str_date + '_' + file_name
-            out_file_path = os.path.join(self.filepath,file_name2)    
+            out_file_path = os.path.join(self.outpath,file_name2)    
             with open(out_file_path, 'wb') as fp:
                 fp.write(dump_result) 
         
