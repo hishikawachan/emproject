@@ -48,8 +48,12 @@ class dbMonthReport:
         
         self.dfw0 = df_paylog[df_paylog['paykbncd'] == flg] 
         
+        #self.dfw0['pricename'] = str(self.dfw0['payprice'])
+        
         if len(self.dfw0) > 0:
-            self.df_paylog = pd.pivot_table(self.dfw0, index=['payyear','paymonth'], columns=['placename'],values=['payprice'],aggfunc='sum',margins=True,margins_name='Total')         
+            self.df_paylog = pd.pivot_table(self.dfw0, index=['payyear','paymonth'], columns=['placename'],values=['payprice'],aggfunc='sum',margins=True,margins_name='Total')        
+            #self.df_paylog = pd.pivot_table(self.dfw0, index=['payyear','paymonth'], columns=['pricename'],values=['payprice'],aggfunc='sum',margins=True,margins_name='Total')         
+ 
 
     ####################
     # 月別集計表出力
