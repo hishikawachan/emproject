@@ -25,6 +25,7 @@ from emplacereport import dbPlaceReport
 from emkinsyureport import dbKinsyuReport
 from emjikanreport import dbJikanReport
 from emmonthreport import dbMonthReport
+from empricereport import dbPriceReport
 from empdfconv import dbPdfConv
 #################################################################
 # 共通パラメータ
@@ -62,6 +63,7 @@ if __name__ == "__main__":
         # 処理予定日<=今日なら処理対象とする
         if td.days >= 0:
             
+            print('*****************************************')
             print('対象会社 :',ret_rows[i][1])
             #debug
             print('対象データDB化開始 :',datetime.datetime.now())
@@ -114,7 +116,7 @@ if __name__ == "__main__":
                 excel_file =  str(companycd) + '_'+str(SYEAR)+str(SMONTH)+str(SDAY)+'_'+str(EYEAR)+str(EMONTH)+str(EDAY)+'.xlsx'
                 file_out_path = os.path.join(dir_out_filepath, excel_file)
     
-                #気象データの更新
+                #気象データの更新                
                 res_list1 = resdb.weather_data_output(prec,block,SYEAR,SMONTH)
                 #debug
                 print(f'気象データ削除１件数：{res_list1[1]} 出力件数：{res_list1[0]}')
@@ -148,46 +150,70 @@ if __name__ == "__main__":
                 #設置場所別売上集計
                 print('設置場所別売上集計処理開始      :',datetime.datetime.now())
                 # 現金分
-                resplace = dbPlaceReport(df_paylog, file_out_path, '1', sdtime, edtime)
-                ret_place = resplace.print_place()
-                del resplace
+                df_paylog1 = df_paylog[df_paylog['paykbncd'] == '1']
+                if len(df_paylog1) > 0:
+                    resplace = dbPlaceReport(df_paylog, file_out_path, '1', sdtime, edtime)
+                    ret_place = resplace.print_place()
+                    del resplace
                 # 電子決済分
-                resplace = dbPlaceReport(df_paylog, file_out_path, '2', sdtime, edtime)
-                ret_place = resplace.print_place()
-                del resplace
+                df_paylog2 = df_paylog[df_paylog['paykbncd'] == '2']
+                if len(df_paylog2) > 0:
+                    resplace = dbPlaceReport(df_paylog, file_out_path, '2', sdtime, edtime)
+                    ret_place = resplace.print_place()
+                    del resplace
                 
                 #金種別売上集計
                 print('金種別売上集計処理開始      :',datetime.datetime.now())
                 # 現金分
-                reskinsyu = dbKinsyuReport(df_paylog, file_out_path, '1', sdtime, edtime)
-                ret_kinsyu = reskinsyu.print_kinsyu()
-                del reskinsyu
+                df_paylog1 = df_paylog[df_paylog['paykbncd'] == '1']
+                if len(df_paylog1) > 0:
+                    reskinsyu = dbKinsyuReport(df_paylog, file_out_path, '1', sdtime, edtime)
+                    ret_kinsyu = reskinsyu.print_kinsyu()
+                    del reskinsyu
                 # 電子決済分
-                reskinsyu = dbKinsyuReport(df_paylog, file_out_path, '2', sdtime, edtime)
-                ret_kinsyu = reskinsyu.print_kinsyu()
-                del reskinsyu
+                df_paylog2 = df_paylog[df_paylog['paykbncd'] == '2']
+                if len(df_paylog2) > 0:
+                    reskinsyu = dbKinsyuReport(df_paylog, file_out_path, '2', sdtime, edtime)
+                    ret_kinsyu = reskinsyu.print_kinsyu()
+                    del reskinsyu
                 
                 #時間別売上集計
                 print('時間別売上集計処理開始      :',datetime.datetime.now())
                 # 現金分
-                resjikan = dbJikanReport(df_paylog, file_out_path, '1', sdtime, edtime, ret_weather)
-                ret_jikan = resjikan.print_jikan()
-                del resjikan
+                df_paylog1 = df_paylog[df_paylog['paykbncd'] == '1']
+                if len(df_paylog1) > 0:
+                    resjikan = dbJikanReport(df_paylog, file_out_path, '1', sdtime, edtime, ret_weather)
+                    ret_jikan = resjikan.print_jikan()
+                    del resjikan
                 # 電子決済分
-                resjikan = dbJikanReport(df_paylog, file_out_path, '2', sdtime, edtime, ret_weather)
-                ret_jikan = resjikan.print_jikan()
-                del resjikan
+                df_paylog2 = df_paylog[df_paylog['paykbncd'] == '2']
+                if len(df_paylog2) > 0:
+                    resjikan = dbJikanReport(df_paylog, file_out_path, '2', sdtime, edtime, ret_weather)
+                    ret_jikan = resjikan.print_jikan()
+                    del resjikan
                 
-                #月別売上集計
-                print('月別売上集計処理開始      :',datetime.datetime.now())
-                # 現金分
-                resmonth = dbMonthReport(df_sum_paylog, file_out_path, '1', sdtime, edtime)
-                ret_month = resmonth.print_monthly()
-                del resmonth
+                #月別決済種別売上集計
+                print('月別決済種別売上集計処理開始      :',datetime.datetime.now())
+                
                 # 電子決済分
-                resmonth = dbMonthReport(df_sum_paylog, file_out_path, '2', sdtime, edtime)
+                resmonth = dbMonthReport(df_syubetu, df_sum_paylog, file_out_path, '2', sdtime, edtime)
                 ret_month = resmonth.print_monthly()
                 del resmonth
+                
+                #月別金種別売上集計
+                print('月別金種別売上集計処理開始      :',datetime.datetime.now())
+                # 現金分
+                df_sum_paylog1 = df_sum_paylog[df_sum_paylog['paykbncd'] == '1']
+                if len(df_paylog1) > 0:
+                    resprice = dbPriceReport(df_sum_paylog, file_out_path, '1', sdtime, edtime)
+                    ret_price = resprice.print_pricemonthly()
+                    del resprice
+                # 電子決済分
+                df_sum_paylog2 = df_sum_paylog[df_sum_paylog['paykbncd'] == '2']
+                if len(df_paylog2) > 0:
+                    resprice = dbPriceReport(df_sum_paylog, file_out_path, '2', sdtime, edtime)
+                    ret_price = resprice.print_pricemonthly()
+                    del resprice
                 
                 #PDFファイル作成
                 print('PDFファイル作成処理開始      :',datetime.datetime.now())

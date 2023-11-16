@@ -14,6 +14,7 @@
 #   2023/3/16  新規作成
 #   2023/9/16  試験的に機能追加(金種別・時間別等のデータをSQLにて取得)
 #   2023/10/24 取引明細データ抽出速度向上改良
+#   2023/11/13 金種ラベル　カラム追加
 # ======================================
 from datetime import datetime
 import datetime
@@ -54,8 +55,9 @@ class DataBaseClass:
             
         # DB接続
         self.cur = dbAccessor(self.dbname,  self.dbport, self.dbip, self.dbuser, self.dbpw)
-        # DBバックアップ        
-        res = self.database_backup()     
+        # DBバックアップ  
+        print('データベースバックアップ(処理前)開始')          
+        res = self.database_backup('1')     
     
     #####################################
     # テーブル名一覧を取得
@@ -116,7 +118,7 @@ class DataBaseClass:
         output_sql = """
             INSERT INTO tbpaylog
             VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, \
-                   %s, %s, %s, %s, %s, %s)
+                   %s, %s, %s, %s, %s, %s, %s, %s)
         """
         if len(row) == 0:
             return 0
@@ -131,7 +133,7 @@ class DataBaseClass:
         output_sql = """
             INSERT IGNORE INTO tbpaylog
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, \
-                    %s, %s, %s, %s, %s, %s, %s)
+                    %s, %s, %s, %s, %s, %s, %s, %s)
         """
         if len(row) == 0:
             return 0
@@ -418,10 +420,12 @@ class DataBaseClass:
                             #景品のデータは1000円に切替
                             if row[12] == '00':    
                                 data_list.append(1000) #決済金額
+                                set_price = '1000'
                                 sum_price += 1000
                             else:
                                 data_list.append(int(row[17])) #決済金額
                                 sum_price += int(row[17])
+                                set_price = str(row[17])
                                 
                             #検索日付・時間セット
                             res_list = self.date_set(kyear,kmonth,kday,khour,kminute,ksecond)
@@ -433,23 +437,29 @@ class DataBaseClass:
                             res_list = self.week_set(kyear,kmonth,kday)
                             data_list.append(res_list[0])#曜日コード
                             data_list.append(res_list[1]) #祝日フラグ 祝日なら'1' それ以外は'0'  
-                            data_list.append(res_list[2])#祝日名（空白有）        
+                            data_list.append(res_list[2])#祝日名（空白有） 
+                            # 金種ラベル追加
+                            data_list.append(set_price)#金種ラベル        
                             
                             #debug 
-                            if in_count % 100 == 0: #100件処理毎に表示
-                                print('データ入力件数',in_count)
+                            #if in_count % 100 == 0: #100件処理毎に表示
+                            #    print('データ入力件数',in_count)
                             in_count += 1
                             
                             #DBへの書き込み(1件ずつ書込む方式)
                             data_list2 = []
                             data_list2.append(data_list)                        
-                            data_num = self.data_insert2(data_list2)  
-                            out_count +=  data_num   
-                            
+                            data_num = self.data_insert2(data_list2) 
+                            if data_num != None:
+                                out_count +=  data_num   
+                            else:
+                                out_err += 1 
                             #debug 
-                            if out_count % 100 == 0: #100件処理毎に表示
-                                print('データ出力件数',out_count)
+                            #if out_count % 100 == 0: #100件処理毎に表示
+                            #    print('データ出力件数',out_count)
                                         
+                        else:
+                            out_err += 1
                     else:
                         out_err += 1        
                     
@@ -464,7 +474,9 @@ class DataBaseClass:
             edit_status = 0
             
         #Debug
-        print('出力件数',in_count-1)
+        print('入力件数',in_count-1)
+        print('出力件数',out_count)
+        print('入力不可件数',out_err)
         print('合計金額',sum_price)      
        
         return edit_status,out_count,out_err,db_updatedate        
@@ -545,7 +557,8 @@ class DataBaseClass:
                                 kingaku_str = int(row[1])
                                 
                             kingaku_dec = int(kingaku_str)
-                            data_list.append(kingaku_dec) #決済金額
+                            data_list.append(kingaku_dec) 
+                            set_price = str(kingaku_dec)
                             sum_price += kingaku_dec                            
                             
                             #検索日付・時間セット
@@ -558,22 +571,28 @@ class DataBaseClass:
                             res_list = self.week_set(kyear,kmonth,kday)
                             data_list.append(res_list[0])#曜日コード
                             data_list.append(res_list[1]) #祝日フラグ 祝日なら'1' それ以外は'0'  
-                            data_list.append(res_list[2])#祝日名（空白有）                
+                            data_list.append(res_list[2])#祝日名（空白有）
+                            # 金種ラベル追加
+                            data_list.append(set_price)#金種ラベル                        
                     
                             #debug 
-                            if in_count % 100 == 0:
-                                print('データ入力件数',in_count) #100件処理毎に表示
+                            #if in_count % 100 == 0:
+                            #    print('データ入力件数',in_count) #100件処理毎に表示
                             in_count += 1
                             
                             #DBへの書き込み(1件ずつ書込む方式)
                             data_list2 = []
                             data_list2.append(data_list)               
                             data_num = self.data_insert2(data_list2)                         
-                            out_count +=  data_num   
+                            #out_count +=  data_num
+                            if data_num != None: 
+                                out_count +=  data_num   
+                            else:
+                                out_err += 1   
                                                         
                             #debug 
-                            if out_count % 100 == 0: #100件処理毎に表示
-                                print('データ出力件数',out_count)
+                            #if out_count % 100 == 0: #100件処理毎に表示
+                            #    print('データ出力件数',out_count)
                         else:
                             out_err += 1
                         
@@ -588,7 +607,9 @@ class DataBaseClass:
             else:
                 edit_status = 0
                 #Debug
-                print('出力件数',out_count-1)
+                print('入力件数',in_count-1)
+                print('出力件数',out_count)
+                print('入力不可件数',out_err)
                 print('合計金額',sum_price)
             
             return edit_status,out_count,db_updatedate  
@@ -703,7 +724,7 @@ class DataBaseClass:
         colum_list = ['payyear','paymonth','payday','payhour','payminute', \
                     'paysecond','paypayno','payplacecd', 'paykbncd','paycardcd', \
                     'payprice','paydatedec','paydatestr','paytimestr', \
-                    'paydatedt','paydateholidayflg','paydateholiday', \
+                    'paydatedt','paydateholidayflg','paydateholiday', 'paypricename', \
                     'placecode','placename','placesisancode','placecocode']
         df_paylog = pd.DataFrame(ret_rows,columns = colum_list) 
         #改行コード外す
@@ -727,11 +748,10 @@ class DataBaseClass:
         #s_date = sdate.year * 10000 +  sdate.month * 100 + sdate.day
         s_date = 20220501
         e_date = edate.year * 10000 +  edate.month * 100 + edate.day
-        
+        # 対象になる設置場所コードをtupleにセット
         ret_place2 = []
         for i in ret_place:
-            ret_place2.append(int(i[0]))
-        
+            ret_place2.append(int(i[0]))        
         #対象設置先コード、日付で売上履歴データ取得            
         p_array = tuple(ret_place2)
         stmt = ','.join(['%s'] * len(ret_place2))
@@ -750,7 +770,7 @@ class DataBaseClass:
         colum_list = ['payyear','paymonth','payday','payhour','payminute', \
                     'paysecond','paypayno','payplacecd', 'paykbncd','paycardcd', \
                     'payprice','paydatedec','paydatestr','paytimestr', \
-                    'paydatedt','paydateholidayflg','paydateholiday', \
+                    'paydatedt','paydateholidayflg','paydateholiday', 'paypricename', \
                     'placecode','placename','placesisancode','placecocode']
         df_paylog = pd.DataFrame(ret_rows,columns = colum_list) 
         #改行コード外す
@@ -762,10 +782,10 @@ class DataBaseClass:
     ##############################################################
     # データベースバックアップ
     ##############################################################
-    def database_backup(self):
+    def database_backup(self,flg):
 
         write_to_file: bool = True
-        file_name:str = 'emoneybackup.sql'
+        file_name:str = 'embackup.sql'
         
         dt_now = datetime.datetime.now()
         
@@ -782,7 +802,10 @@ class DataBaseClass:
         if write_to_file:
             dump_result = dump_process.communicate()[0]
             str_date = str(dt_now.month) + str(dt_now.day) + str(dt_now.hour) +  str(dt_now.minute)
-            file_name2 = str_date + '_' + file_name
+            if flg == '1':
+                file_name2 = str_date + '_' + 'before' + '_' + file_name 
+            else:
+                file_name2 = str_date + '_' + 'after'  + '_' + file_name 
             out_file_path = os.path.join(self.outpath,file_name2)    
             with open(out_file_path, 'wb') as fp:
                 fp.write(dump_result) 
@@ -794,5 +817,8 @@ class DataBaseClass:
     ###############################################################
     def __del__(self):
         #print('ディストラクタ呼び出し') 
-        pass 
+        # DBバックアップ 
+        print('データベースバックアップ(処理後)開始')       
+        res = self.database_backup('2')     
+    
                

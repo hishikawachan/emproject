@@ -146,7 +146,7 @@ class dbJikanReport:
         sh.column_dimensions['D'].width = 25 #天気（夜）
         sh.column_dimensions['E'].width = 10 #最高気温
         sh.column_dimensions['F'].width = 10 #最低気温
-        sh.column_dimensions['G'].width = 7
+        sh.column_dimensions['G'].width =  9
         #表記を修正
         sh.cell(row=5, column=2).value=' '  
         sh.cell(row=5, column=6).value='時間  →' 

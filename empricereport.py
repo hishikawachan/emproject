@@ -2,7 +2,7 @@
 # ======================================
 # 電子マネー管理システム
 # MariaデータベースからデータExcel及びPDF出力
-# 月別売上集計
+# 月別金種別売上集計
 # [環境]20
 #   Python 3.10.8
 #   VSCode 1.64
@@ -11,7 +11,7 @@
 #     |- Pylance V2021.12
 #
 # [更新履歴]
-#   2023/11/6  新規作成
+#   2023/11/13  新規作成
 # ======================================
 from datetime import datetime
 import datetime
@@ -26,12 +26,11 @@ from emunmerge import excel_operate
 ####
 # 初期処理
 ####
-class dbMonthReport:        
+class dbPriceReport:        
     # クラス初期化
-    def __init__(self, df_syubetu, df_paylog, file_out_path, flg, sdate, edate):  
+    def __init__(self, df_paylog, file_out_path, flg, sdate, edate):  
         
         # クラス初期化
-        self.df_card = df_syubetu
         self.df_paylog = df_paylog 
         self.file_out_path = file_out_path
         
@@ -42,33 +41,29 @@ class dbMonthReport:
         self.EMONTH = edate.month
         self.EDAY = edate.day             
         
-        # if flg == '1':
-        #     self.sheet_name = '月別(現金)'
-        # else:
-        #     self.sheet_name = '月別(電子決済)'
+        if flg == '1':
+            self.sheet_name = '月別金種別(現金)'
+        else:
+            self.sheet_name = '月別金種別(電子決済)'
         
-        self.sheet_name = '月別決済種別'
-        # 決済種別を結合
-        self.df_paylog = pd.merge(self.df_paylog,self.df_card, left_on='paycardcd', right_on='cardcode') 
-        
-        #self.df_paylog.sort_index(axis=1, ascending=False, inplace=True)
-        self.df_paylog.sort_values(['payyear', 'paymonth', 'cardcode'])
-        
-        
-        #self.dfw0 = df_paylog[df_paylog['paykbncd'] == flg] 
-        
-        #self.dfw0['pricename'] = str(self.dfw0['payprice'])
-        
-        if len(self.df_paylog) > 0:
-            #self.df_paylog = pd.pivot_table(self.dfw0, index=['payyear','paymonth'], columns=['placename'],values=['payprice'],aggfunc='sum',margins=True,margins_name='Total')  
-            self.df_paylog = pd.pivot_table(self.df_paylog, index=['payyear','paymonth'], columns=['cardname'],values=['payprice'],aggfunc='sum',margins=True,margins_name='Total')
+        self.df_paylog = self.df_paylog.sort_values('payprice')
+        self.dfw0 = self.df_paylog[self.df_paylog['paykbncd'] == flg]  
+        #self.dfw0 = self.dfw0.sort_values('payprice')
+        self.dfw0 = self.dfw0[self.dfw0['payprice'] >= 50] 
+        self.dfw0['paypricename'] = self.dfw0['paypricename'].astype('int')
+        self.dfw0 = self.dfw0.sort_values(['payyear', 'paymonth', 'paypricename'])
+        #self.dfw0 = self.dfw0.assign(paypricesort=self.dfw0['payprice'])
+        if len(self.dfw0) > 0:       
+            #self.df_paylog = pd.pivot_table(self.dfw0, index=['payyear','paymonth','placename'], columns=['paypricename'],values=['payprice'],aggfunc='sum',margins=True,margins_name='Total') 
+            self.df_paylog = pd.pivot_table(self.dfw0, index=['payyear','paymonth','paypricename'], columns=['placename'],values=['payprice'],aggfunc='sum',margins=True,margins_name='Total') 
+            #self.df_paylog = pd.pivot_table(self.dfw0, index=['payyear','paymonth','paypricesort'], columns=['placename'],values=['payprice'],aggfunc='sum',margins=True,margins_name='Total') 
  
     ####################
-    # 月別決済種別集計表出力
+    # 月別金種別集計表出力
     ####################
-    def print_monthly(self): 
+    def print_pricemonthly(self): 
         #debug
-        print('月別決済種別集計表出力開始：',datetime.datetime.now())  
+        print('月別金種別集計表出力開始：',datetime.datetime.now())  
         if len(self.df_paylog) <= 0: #データ0件
             return 0        
             
@@ -84,7 +79,7 @@ class dbMonthReport:
         # 印刷の向きを設定
         wps.orientation = sh.ORIENTATION_LANDSCAPE
             
-        sh.cell(row=1, column=2).value='月別決済種別集計表'
+        sh.cell(row=1, column=2).value='月別金種別売上集計表'
         sh.cell(row=1, column=3).value=self.sheet_name
             
         str1 = (f'{self.SYEAR} 年 {self.SMONTH} 月 {self.SDAY} 日  ～')
@@ -98,8 +93,9 @@ class dbMonthReport:
         #表記を修正
         sh.cell(row=6, column=2).value='決済年'
         sh.cell(row=6, column=3).value='決済月'  
-        sh.cell(row=5, column=3).value=''  
-        sh.cell(row=4, column=4).value='決済種別' 
+        sh.cell(row=5, column=4).value=''  
+        sh.cell(row=4, column=5).value='設置場所'
+        sh.cell(row=6, column=4).value='選択金額' 
         sh.cell(row=maxr,column=2).value = '合計'
         sh.cell(row=5,column=maxc).value = '月合計'
         
@@ -109,9 +105,11 @@ class dbMonthReport:
                 sh.cell(row=i,column=j).number_format = "#,##0"
         
         #タイトルの文字サイズ変更
-        font = Font(name='Yu Gothic', sz = 8)
+        font = Font(name='Yu Gothic', sz = 10)
         for j in range(4,maxc):        
             sh.cell(row=5,column=j).font = font
+        for k in range(7,maxr):        
+            sh.cell(row=k,column=4).font = font
         
         # セル幅を自動調整
         for col in sh.columns:
@@ -119,12 +117,14 @@ class dbMonthReport:
             for cell in col:
                 if len(str(cell.value)) > max_length:
                     max_length = len(str(cell.value))  
-                adjusted_width = (max_length + 1) * 1.5 
+                adjusted_width = (max_length + 1) * 1.8 
                 sh.column_dimensions[col[0].column_letter].width = adjusted_width
         
         #部分的にセル幅を修正
         sh.column_dimensions['B'].width = 24
-        sh.column_dimensions['C'].width = 15     
+        sh.column_dimensions['C'].width = 15
+        sh.column_dimensions['D'].width = 15
+             
         
         #罫線引く
         side = Side(style='thin', color='000000')
@@ -137,7 +137,7 @@ class dbMonthReport:
         wb.save(f'{self.file_out_path}')
         
         #debug
-        print('月別決済種別集計表出力終了：',datetime.datetime.now())   
+        print('月別金種別集計表出力終了：',datetime.datetime.now())   
         
         return 0
     
