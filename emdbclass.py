@@ -57,60 +57,22 @@ class DataBaseClass:
         self.cur = dbAccessor(self.dbname,  self.dbport, self.dbip, self.dbuser, self.dbpw)
         # DBバックアップ  
         print('データベースバックアップ(処理前)開始')          
-        res = self.database_backup('1')     
-    
+        res = self.database_backup('1')    
     #####################################
     # テーブル名一覧を取得
     #####################################
     def init_return(self):
         parm_list = []
         parm_list.append(self.outpath)
-        return parm_list    
-    
+        
+        return parm_list   
     #####################################
     # テーブル名一覧を取得
     #####################################
     def tabele_name_list_get(self):
         ret_list = self.cur.table_name_get()
-        return ret_list
-    
-    #####################################
-    # データ存在チェック(売上照会系)
-    #####################################
-    def db_wcheck1(self,data_list):
-        check_sql = f"""    
-                SELECT * 
-                FROM    tbpaylog
-                WHERE   payyear = {data_list[0]}
-                AND     paymonth = {data_list[1]}
-                AND     payday = {data_list[2]}
-                AND     payhour = {data_list[3]}
-                AND     payminute = {data_list[4]}
-                AND     paysecond = {data_list[5]}
-                AND     paypayno = {data_list[6]}
-                AND     payplacecd = {data_list[7]}
-                AND     payprice = {data_list[10]}    
-        """
-        rows = self.cur.excecuteQuery(check_sql)
-        return rows
-    #####################################
-    # データ存在チェック(売上照会系以外)
-    #####################################
-    def db_wcheck2(self,data_list):
-        check_sql = f"""    
-                SELECT * 
-                FROM    tbpaylog
-                WHERE   payyear = {data_list[0]}
-                AND     paymonth = {data_list[1]}
-                AND     payday = {data_list[2]}
-                AND     payhour = {data_list[3]}
-                AND     payminute = {data_list[4]}
-                AND     paysecond = {data_list[5]}
-                AND     payplacecd = {data_list[7]}
-                AND     payprice = {data_list[10]}    
-        """
-        rows = self.cur.excecuteQuery(check_sql)
-        return rows
+        
+        return ret_list    
     ####################################    
     #　実データ書き込み
     ####################################
@@ -139,18 +101,8 @@ class DataBaseClass:
             return 0
         else:
             num = self.cur.excecuteInsertmany(output_sql,row) 
-            return num   
-        
-    ####################################    
-    #　Logデータクリア
-    ####################################
-    def logdata_delete(self):
-        q_sql = f"""
-                    delete from tbloglog
-                """   
-        res = self.cur.excecuteDelete(q_sql)
-        return res
-    
+            
+            return num    
     #####################################
     # ヤマトフィナンシャルデータからニューツルミ1階分のみ検出
     #####################################
@@ -168,8 +120,8 @@ class DataBaseClass:
         if row[8] == "ｎａｎａｃｏ":
             if int(row[7]) >= 10000: #nanaco
                 return 2
+            
         return 9
-
     ####################################    
     #　ソート、集計用日付、時間生成
     # ##################################
@@ -183,8 +135,8 @@ class DataBaseClass:
         res_date3 = str(year)  + str(month) +  str(day)
         #時間（文字列）
         res_date4 = str(hour) + str(minute) + str(second)
-        return res_date1,res_date2,res_date3,res_date4
-    
+        
+        return res_date1,res_date2,res_date3,res_date4    
     #######################################
     # 曜日・祝日検索
     #######################################
@@ -199,8 +151,8 @@ class DataBaseClass:
         else:
             res_horiday = " "
             flg = 0
-        return week,flg,res_horiday
-    
+            
+        return week,flg,res_horiday    
     #######################################
     #　設置場所資産番号から設置場所番号を検索
     #######################################
@@ -211,8 +163,8 @@ class DataBaseClass:
                     WHERE placesisancode = '{sisancd}'
                 """   
         ret_rows = self.cur.excecuteQuery(q_sql)
-        return ret_rows
-    
+        
+        return ret_rows    
     #######################################
     #　会社コードから設置場所番号を検索し配列で受け取る
     #######################################
@@ -228,8 +180,8 @@ class DataBaseClass:
         i = 0
         for i in ret_rows:
             row.append(str(i[0]))
-        return row
-    
+            
+        return row    
     #######################################
     # 明細種別名称から明細種別番号を検索
     #######################################
@@ -240,8 +192,8 @@ class DataBaseClass:
                     WHERE cardname = '{syubetsuname}'
             """                
         ret_rows = self.cur.excecuteQuery(q_sql)
-        return ret_rows
-    
+        
+        return ret_rows    
     ######################################
     #対象年月の最新気象データに更新            
     ######################################
@@ -283,8 +235,7 @@ class DataBaseClass:
             """
         ret_rows = self.cur.excecuteQuery(sql)
         
-        return ret_rows
-    
+        return ret_rows    
     ####################################
     # 気象情報取得 期間を絞ったデータ取得    
     ###################################        
@@ -296,8 +247,7 @@ class DataBaseClass:
             """
         ret_rows = self.cur.excecuteQuery(sql)
         
-        return ret_rows
-    
+        return ret_rows    
     ####################################
     # 気象情報取得 日付範囲指定での抽出    
     ###################################        
@@ -312,8 +262,7 @@ class DataBaseClass:
             """
         ret_rows = self.cur.excecuteQuery(sql)
         
-        return ret_rows
-    
+        return ret_rows    
     ####################################
     # 気象情報取得 データ修正    
     ###################################        
@@ -327,7 +276,6 @@ class DataBaseClass:
                 AND   month = {month}
                 """            
         ret_rows = self.cur.excecuteUpdate(s_sql)     
-    
     ###############################################################
     # 会社データから全データ取得
     ############################################################### 
@@ -338,8 +286,7 @@ class DataBaseClass:
                 """
         ret_rows = self.cur.excecuteQuery(s_sql) 
         
-        return ret_rows
-    
+        return ret_rows    
     ###############################################################
     # 会社データから指定レコード取得
     ############################################################### 
@@ -347,8 +294,7 @@ class DataBaseClass:
         s_sql = f'SELECT * FROM tbcompany WHERE comcode={companyid}'
         ret_rows = self.cur.excecuteQuery(s_sql) 
         
-        return ret_rows
-    
+        return ret_rows    
     ###############################################################
     # 対象会社のcsvファイル読込み及びDB出力　売上明細
     ############################################################### 
@@ -479,10 +425,9 @@ class DataBaseClass:
         print('入力不可件数',out_err)
         print('合計金額',sum_price)      
        
-        return edit_status,out_count,out_err,db_updatedate        
-    
+        return edit_status,out_count,out_err,db_updatedate    
     ###############################################################
-    # 対象会社のcsvファイル読込み　TOAMAS
+    # 対象会社のcsvファイル読込み　TOAMAS及びDB出力
     ############################################################### 
     def income_output(self,companyid, sdate, edate, f_name):
         # 入力ファイル名の取得
@@ -612,8 +557,7 @@ class DataBaseClass:
                 print('入力不可件数',out_err)
                 print('合計金額',sum_price)
             
-            return edit_status,out_count,db_updatedate  
-    
+            return edit_status,out_count,db_updatedate    
     ###############################################################
     # 会社データの次回処理予定日、対象範囲を更新
     ############################################################### 
@@ -649,8 +593,7 @@ class DataBaseClass:
                 """            
             ret_rows = self.cur.excecuteUpdate(s_sql)         
         
-        return ret_rows #更新件数
-    
+        return ret_rows #更新件数    
     ###############################################################
     # 設置場所データを設置場所コードで検索して返す
     ############################################################### 
@@ -658,8 +601,7 @@ class DataBaseClass:
         s_sql = f'SELECT * FROM tbplace WHERE placecode={placecd}'
         ret_rows = self.cur.excecuteQuery(s_sql) 
         
-        return ret_rows
-    
+        return ret_rows    
     ##############################################################
     # カード種別のデータをDataFrameで返す
     ##############################################################
@@ -731,8 +673,7 @@ class DataBaseClass:
         df_paylog['placecocode'] = df_paylog['placecocode'].str.strip()
         df_paylog['placesisancode'] = df_paylog['placesisancode'].str.strip()
         
-        return df_paylog
-    
+        return df_paylog    
     ###############################################################
     # 月別レポート用取引明細データをDataFrameで返す    # 
     ###############################################################  
@@ -777,8 +718,7 @@ class DataBaseClass:
         df_paylog['placecocode'] = df_paylog['placecocode'].str.strip()
         df_paylog['placesisancode'] = df_paylog['placesisancode'].str.strip() 
         
-        return df_paylog
-    
+        return df_paylog    
     ##############################################################
     # データベースバックアップ
     ##############################################################
@@ -810,8 +750,7 @@ class DataBaseClass:
             with open(out_file_path, 'wb') as fp:
                 fp.write(dump_result) 
         
-        return 0
-    
+        return 0    
     ###############################################################
     # ディストラクタ
     ###############################################################
@@ -819,6 +758,5 @@ class DataBaseClass:
         #print('ディストラクタ呼び出し') 
         # DBバックアップ 
         print('データベースバックアップ(処理後)開始')       
-        res = self.database_backup('2')     
-    
+        res = self.database_backup('2')       
                
