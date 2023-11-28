@@ -78,7 +78,8 @@ class dbJikanReport:
         
         #天気情報挿入
         sh.insert_cols(3, 4) #列挿入        
-        for i in range(7,len(self.weatherdata)+7):
+        #for i in range(7,len(self.weatherdata)+7):
+        for i in range(7,len(self.df_paylog1)+6):
             sh.cell(row=i, column=3).value = self.weatherdata[i-7][1] #天気（昼）
             sh.cell(row=i, column=4).value = self.weatherdata[i-7][2] #天気（夜）
             sh.cell(row=i, column=5).value = self.weatherdata[i-7][3] #最高気温
