@@ -245,7 +245,7 @@ if __name__ == "__main__":
                 print('帳票作成処理終了      :',datetime.datetime.now())                
                 
                 #対象会社データ更新日の更新
-                res_row = resdb.company_updateday_update(companycd)
+                #res_row = resdb.company_updateday_update(companycd)
                             
         i += 1
     
