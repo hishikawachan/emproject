@@ -17,9 +17,10 @@ from datetime import datetime
 import datetime
 import jpholiday
 import os
-import win32com.client
 import pandas as pd
 import openpyxl 
+import xlwings as xw
+import glob
 from openpyxl.styles.borders import Border, Side
 from openpyxl.styles.alignment import Alignment
 from openpyxl.styles import Font
@@ -48,6 +49,9 @@ class dbReportEdit:
     # カード種類別集計表
     ########################
     def print_syubetsu(self,df_card,df_paylog1):
+        #debug
+        print('カード種類別集計表出力開始：',datetime.datetime.now()) 
+        
         # 決済種別を結合
         df_paylog = pd.merge(df_paylog1,df_card, left_on='paycardcd', right_on='cardcode') 
         # 決済種別毎に集計
@@ -129,6 +133,9 @@ class dbReportEdit:
         
         wb.save(f'{self.file_out_path}')
         
+        #debug
+        print('カード種類別集計表出力終了：',datetime.datetime.now()) 
+        
         return 0
         
     ######################
@@ -136,6 +143,9 @@ class dbReportEdit:
     ######################
     def print_place(self,df_paylog,sheet_name):
         
+        #debug
+        print('設置場所別集計表出力開始：',datetime.datetime.now()) 
+                
         #データをExcelに出力    
         with pd.ExcelWriter(f'{self.file_out_path}', mode='a') as writer:
             df_paylog.to_excel(writer,startrow=3,startcol=1,sheet_name=sheet_name) 
@@ -214,11 +224,18 @@ class dbReportEdit:
         # save xlsx file
         wb.save(f'{self.file_out_path}')
         
+        #debug
+        print('設置場所別集計表出力終了：',datetime.datetime.now()) 
+        
         return 0
     ##########################
     # 金種別選択回数集計表出力
     # ########################  
     def print_kinsyu(self,df_paylog1,df_paylog2,sheet_name):
+        
+        #debug
+        print('金種別集計表出力開始：',datetime.datetime.now()) 
+        
         #データをExcelに出力
         sheet_name2 = sheet_name + '_2'
         with pd.ExcelWriter(f'{self.file_out_path}', mode='a') as writer:
@@ -358,194 +375,18 @@ class dbReportEdit:
         wb.remove(wb[sheet_name2])
         wb.save(f'{self.file_out_path}')
         
-        return 0
-    
-    ##########################
-    # 金種別選択回数集計表出力
-    # 新バージョン 2023/9/22
-    # ########################  
-    def print_kinsyu2(self,data_kinsyu,kinsyu_sum_data,sheet_name):
-        # sheetの作成
-        wb = openpyxl.load_workbook(f'{self.file_out_path}')
-        #sh = wb[sheet_name]
-        if sheet_name == '金種別(現金)':
-            wb.create_sheet(index=3, title=sheet_name)
-        else:
-            wb.create_sheet(index=4, title=sheet_name) 
-        sh = wb.get_sheet_by_name(sheet_name) 
-        
-        #ヘッダー部のセット
-        #1行目
-        row_no = 1
-        sh.cell(row=row_no, column=2).value='金種別利用回数集計表'
-        sh.cell(row=row_no, column=3).value=sheet_name        
-        #2行目
-        row_no = 2
-        str1 = (f'{self.SYEAR} 年 {self.SMONTH} 月 {self.SDAY} 日  ～')
-        str2 = (f'{self.EYEAR} 年 {self.EMONTH} 月 {self.EDAY} 日')  
-        sh.cell(row=row_no, column=2).value=str1
-        sh.cell(row=row_no, column=3).value=str2
-        #4行目
-        row_no = 4
-        sh.cell(row=row_no, column=4).value='決済時刻'
-        #5行目
-        row_no = 5
-        col_no = 4        
-        for x, row_data in enumerate(data_kinsyu):
-            for y, cell_data in enumerate(row_data):
-                if x == 0 and y > 1:
-                    sh.cell(row=row_no,column=col_no).value=cell_data
-                    col_no += 1
-        sh.cell(row=row_no,column=col_no).value='合計'    
-        #6行目
-        row_no = 6
-        sh.cell(row=row_no, column=2).value='決済日'  
-        sh.cell(row=row_no, column=3).value='決済金額'
-        
-        #明細部のセット
-        #7行目
-        row_no = 7
-        col_no = 2
-        no_sum = 0
-        kinsyu_item_count = len(data_kinsyu) - 1
-        for x, row_data in enumerate(data_kinsyu):
-            row_data_count = len(row_data)
-            for y, cell_data in enumerate(row_data):
-                if x > 0:
-                    #明細を順次セット
-                    sh.cell(row=row_no,column=col_no).value=cell_data
-                    if cell_data != '' and y > 1:  
-                        no_sum = no_sum + int(cell_data)
-                    col_no += 1
-            #利用回数総合計を表示
-            if x > 0:
-                sh.cell(row=row_no,column=col_no+1).value=no_sum
-                #明細行最後の処理
-                if x == kinsyu_item_count:
-                    sh.cell(row=row_no,column=2).value='合計'
-                    sh.cell(row=row_no,column=3).value=''
-                    sh.cell(row=row_no,column=col_no+1).value=no_sum            
-                row_no += 1
-                col_no = 2
-                no_sum = 0
-        
-        # 最終行の取得
-        maxr = sh.max_row
-        maxc = sh.max_column
-        #決済日を日ごとにマージする  
-        mer_str_no = 7  
-        mer_date = sh.cell(row=7,column=2).value
-        for i in range(7,maxr+1):
-            if mer_date != sh.cell(row=i,column=2).value and  sh.cell(row=i,column=2).value != '':
-                sh.merge_cells(start_row=mer_str_no,start_column=2,end_row=i-1,end_column=2)
-                mer_date = sh.cell(row=i,column=2).value 
-                mer_str_no = i               
-                    
-        #用紙設定
-        wps = sh.page_setup
-        # 用紙サイズを設定
-        wps.paperSize = sh.PAPERSIZE_A3
-        # 印刷の向きを設定
-        wps.orientation = sh.ORIENTATION_LANDSCAPE
-            
-        # セル幅を自動調整
-        for col in sh.columns:
-            max_length = 0
-            for cell in col:
-                if len(str(cell.value)) > max_length:
-                    max_length = len(str(cell.value))        
-                
-            adjusted_width = (max_length + 1) * 1.3   
-            sh.column_dimensions[col[0].column_letter].width = adjusted_width
-                
-        #部分的にセル幅を修正
-        sh.column_dimensions['B'].width = 25 #売上日
-        sh.column_dimensions['C'].width = 15 #決済金額    
-        #罫線引く
-        sh.merge_cells(start_row=4,start_column=2,end_row=5,end_column=3)
-        side = Side(style='thin', color='000000')
-        border = Border(top=side, bottom=side, left=side, right=side)
-            
-        for row_num in range(4,maxr+1):    
-            for col_num in range(2,maxc+1):
-                sh.cell(row=row_num ,column=col_num).border = border
-                
-        #決済金額の表示フォーマットを変更
-        for i in range(7,maxr+1):
-            for j in range(3,maxc+1):
-                #金種
-                sh.cell(row=i,column=j).number_format = "#,##0"
-        #for i in range(7,maxr+1):
-        #    sh.cell(row=i,column=3).number_format = "#,##0"
-            
-        #金種別の合計表示
-        ft = Font(bold=True)
-        sh.cell(row=maxr+2,column=2).value = "金種別件数合計"
-        sh.cell(row=maxr+2,column=2).font = ft
-        
-        sum_count = len(kinsyu_sum_data)
-        kinsyu_sum_tuple_key = list(kinsyu_sum_data.keys())
-        kinsyu_sum_tuple_value = list(kinsyu_sum_data.values())
-        idx = 0
-        kinsyu_sum_tuple_value_sum = 0
-        
-        for i in range(maxr+3,maxr+3+sum_count):
-            #金種をセット
-            sh.cell(row = i, column = 3 , value = kinsyu_sum_tuple_key[idx]).number_format = "#,##0"
-            sh.cell(row = i, column = 3 , value = kinsyu_sum_tuple_key[idx]).font = ft
-            #数値をセット
-            kinsyu_sum_tuple_value_sum += int(kinsyu_sum_tuple_value[idx]) 
-            sh.cell(row = i, column = maxc , value = kinsyu_sum_tuple_value[idx]).alignment = Alignment(horizontal = 'center', 
-                                                                                                vertical = 'center') 
-            idx += 1 
-        #総合計値をセット
-        sh.cell(row = i+1, column = 3 , value = '総合計')
-        sh.cell(row = i+1, column = maxc, value = kinsyu_sum_tuple_value_sum).number_format = "#,##0"
-                
-        """ #祝祭日の背景に色をつける
-        # 会社特有の休日
-        #company_holiday = ['2018-01-02','2018-01-03','2018-12-28','2018-12-31']        
-        ymdx = 99999999
-        for row_num in range(7,maxr):
-            ymd = sh.cell(row=row_num,column=2).value
-            if ymd != '':
-                wmd = str(ymd)
-                if ymd != ymdx and ymd != None:
-                    #sh.unmerge_cells(row=row_num,column=2)
-                    ymdx = sh.cell(row=row_num,column=2).value   
-                    y = wmd[0:4]
-                    m = wmd[4:6]
-                    d = wmd[6:8]
-                    sh.cell(row=row_num,column=2).number_format = "###0"
-                    dt = datetime.date(int(y),int(m),int(d))
-                    cel = sh.cell(row=row_num,column=2)
-
-                    #土日、祝祭日判定してセルに色をつける   
-                    # 通常の土日
-                    if dt.weekday() == 5:
-                        sh[cel.coordinate].fill = PatternFill(patternType='solid', fgColor='ffb76e')
-            
-                    if dt.weekday() == 6:
-                        sh[cel.coordinate].fill = PatternFill(patternType='solid', fgColor='ff2d3d')
-
-                    # 祝日
-                    dy = int(y)
-                    dm = int(m)
-                    dd = int(d)
-                    #祝日判定
-                    res_horiday = jpholiday.is_holiday_name(datetime.date(dy,dm,dd))
-                    if res_horiday != None:
-                        sh[cel.coordinate].fill = PatternFill(patternType='solid', fgColor='8eef6e') """
-                    
-        #ワーク用シートの削除とブックの保存
-        wb.save(f'{self.file_out_path}')
+        #debug
+        print('金種別集計表出力終了：',datetime.datetime.now()) 
         
         return 0
     
     ####################
     # 時間別集計表出力
     ####################
-    def print_jikan(self,df_paylog1,sheet_name):        
+    def print_jikan(self,df_paylog1,sheet_name):   
+        
+        #debug
+        print('時間別集計表出力開始：',datetime.datetime.now())      
             
         #データをExcelに出力     
         with pd.ExcelWriter(f'{self.file_out_path}', mode='a') as writer:
@@ -675,7 +516,86 @@ class dbReportEdit:
         # save xlsx file
         wb.save(f'{self.file_out_path}')
         
+        #debug
+        print('時間別集計表出力終了：',datetime.datetime.now())      
+        
         return 0
+    
+    ####################
+    # 月別集計表出力
+    ####################
+    def print_place_monthly(self,df_paylog,sheet_name): 
+        #debug
+        print('月別設置場所別集計表出力開始：',datetime.datetime.now())      
+        with pd.ExcelWriter(f'{self.file_out_path}', mode='a') as writer:
+            df_paylog.to_excel(writer,startrow=3,startcol=1,sheet_name=sheet_name) 
+        wb = openpyxl.load_workbook(f'{self.file_out_path}')
+        sh = wb[sheet_name]
+        
+        #用紙設定
+        wps = sh.page_setup
+        # 用紙サイズを設定
+        wps.paperSize = sh.PAPERSIZE_A3
+        # 印刷の向きを設定
+        wps.orientation = sh.ORIENTATION_LANDSCAPE
+            
+        sh.cell(row=1, column=2).value='月別設置場所別集計表'
+        sh.cell(row=1, column=3).value=sheet_name
+            
+        str1 = (f'{self.SYEAR} 年 {self.SMONTH} 月 {self.SDAY} 日  ～')
+        str2 = (f'{self.EYEAR} 年 {self.EMONTH} 月 {self.EDAY} 日')
+        sh.cell(row=2, column=2).value=str1
+        sh.cell(row=2, column=3).value=str2
+        
+        # 最終行・列数の取得
+        maxr = sh.max_row
+        maxc = sh.max_column
+        #表記を修正
+        sh.cell(row=6, column=2).value='決済年'
+        sh.cell(row=6, column=3).value='決済月'  
+        sh.cell(row=5, column=3).value=''  
+        sh.cell(row=4, column=4).value='設置場所' 
+        sh.cell(row=maxr,column=2).value = '合計'
+        sh.cell(row=5,column=maxc).value = '月合計'
+        
+        #金額の表示フォーマットを変更
+        for i in range(4,maxr+1):
+            for j in range(4,maxc+1):
+                sh.cell(row=i,column=j).number_format = "#,##0"
+        
+        #タイトルの文字サイズ変更
+        font = Font(name='Yu Gothic', sz = 8)
+        for j in range(4,maxc):        
+            sh.cell(row=5,column=j).font = font
+        
+        # セル幅を自動調整
+        for col in sh.columns:
+            max_length = 0
+            for cell in col:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))  
+                adjusted_width = (max_length + 1) * 1.5 
+                sh.column_dimensions[col[0].column_letter].width = adjusted_width
+        
+        #部分的にセル幅を修正
+        sh.column_dimensions['B'].width = 24
+        sh.column_dimensions['C'].width = 15     
+        
+        #罫線引く
+        side = Side(style='thin', color='000000')
+        border = Border(top=side, bottom=side, left=side, right=side)
+            
+        for row_num in range(6,maxr+1):    
+            for col_num in range(4,maxc+1):
+                sh.cell(row=row_num ,column=col_num).border = border
+
+        wb.save(f'{self.file_out_path}')
+        
+        #debug
+        print('月別設置場所別集計表出力終了：',datetime.datetime.now())   
+        
+        return 0
+    
     #
     # 時間別集計表出力（テストトライアル）
     #
@@ -688,31 +608,27 @@ class dbReportEdit:
         print('テスト完了')  
 
     #
-    # 出力されたEXCELシートをwin32apiを使ってPDF変換する
+    # 出力されたEXCELシートをxlwungsを使ってPDF変換する
     #     
     def pdfconv(self,dir_out_filepath):
-        excel = win32com.client.Dispatch("Excel.Application")
+        #debug
+        print('PDFファイル出力開始：',datetime.datetime.now())
         # pdfへの変換
-        path = dir_out_filepath + '/'
-        wb = excel.Workbooks.Open(self.file_out_path)
-        excelSheets = []
-        for sheet in wb.Worksheets:
-            excelSheets.append(sheet.name)
-        #for i in range(1,5):
-        sheet_num = len(excelSheets)
-        for i in range(1,sheet_num+1):   
-            wb.WorkSheets(i).Select()
-            try:
-                if os.path.exists(path + excelSheets[i-1] + '.pdf' ):
-                    os.remove(path + excelSheets[i-1] + '.pdf' )
-                wb.ActiveSheet.ExportAsFixedFormat(0, path + excelSheets[i-1] + '.pdf' )
-            except:
-                print('PDFファイルが正常に保存できませんでした')
-                wb.Close()
-                excel.Quit() 
-            
-        wb.Close()
-        excel.Quit() 
+        output_path = dir_out_filepath + '/'
+        #Excelファイルを取得
+        excel_file =  glob.glob(self.file_out_path) 
+
+        App = xw.App(visible=False)        
+
+        wb = xw.Book(excel_file[0])
+        for j in wb.sheets:
+            wb.sheets[j].to_pdf(path= output_path + j.name + '.pdf')   
+        wb.close()
+      
+        App.quit()
+        
+        #debug
+        print('PDFファイル出力終了：',datetime.datetime.now())
     
     ###############################################################
     # ディストラクタ

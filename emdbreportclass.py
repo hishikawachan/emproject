@@ -144,25 +144,19 @@ class dbReport:
     ######################################  
     # メイン
     ######################################           
-    def main(self):  
+    def main(self,company_row):  
             
-        #データベース操作クラス初期化
-        resdb = DataBaseClass(self.parm_data)
-
-        SYEAR = self.parm_data[5].year
-        SMONTH = self.parm_data[5].month
-        SDAY = self.parm_data[5].day
-        EYEAR = self.parm_data[6].year
-        EMONTH = self.parm_data[6].month
-        EDAY = self.parm_data[6].day
+        SYEAR = company_row[5].year
+        SMONTH = company_row[5].month
+        SDAY = company_row[5].day
+        EYEAR = company_row[6].year
+        EMONTH = company_row[6].month
+        EDAY = company_row[6].day
         
-        companycd = self.parm_data[8]
+        companycd = company_row[8]
         
-        #会社データ取得(会社コード指定)
-        ret_rows = resdb.company_data_get(companycd)
-        
-        prec = ret_rows[0][2]
-        block = ret_rows[0][3]
+        prec = company_row[2]
+        block = company_row[3]
         
         #debug
         print('帳票出力処理開始：',datetime.datetime.now()) 

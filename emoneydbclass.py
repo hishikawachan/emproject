@@ -13,6 +13,7 @@
 # [更新履歴]
 #   2023/3/16  新規作成
 #   2023/9/16  試験的に機能追加(金種別・時間別等のデータをSQLにて取得)
+#   2023/10/24 取引明細データ抽出速度向上改良
 # ======================================
 from datetime import datetime
 import datetime
@@ -106,7 +107,20 @@ class DataBaseClass:
         else:
             num = self.cur.excecuteInsertmany(output_sql,row) 
             return num    
-    
+    ####################################    
+    #　実データ書き込み IGNORE仕様
+    ####################################
+    def data_insert2(self,row):
+        output_sql = """
+            INSERT IGNORE INTO tbpaylog
+            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, \
+                   %s, %s, %s, %s, %s, %s)
+        """
+        if len(row) == 0:
+            return 0
+        else:
+            num = self.cur.excecuteInsertmany(output_sql,row) 
+            return num    
     #####################################
     # ヤマトフィナンシャルデータからニューツルミ1階分のみ検出
     #####################################
@@ -300,22 +314,6 @@ class DataBaseClass:
                     WHERE comcode={companyid}
                 """            
             ret_rows = self.cur.excecuteUpdate(s_sql)         
-            
-        # if ret_rows[0][6] == 'month':
-        #     days_num = int(ret_rows[0][5])
-        #     dt1 = ret_rows[0][4] + relativedelta(months=days_num)
-        #     dt2 =  ret_rows[0][8] + datetime.timedelta(days=1)
-        #     dt31 = dt2 + relativedelta(months=days_num)
-        #     dt3 = dt31 - datetime.timedelta(days=1)
-        
-        # s_sql = f"""
-        #             UPDATE tbcompany 
-        #             SET comupdate = '{dt1}',
-        #                 comstartday = '{dt2}',
-        #                 comendday = '{dt3}'                   
-        #             WHERE comcode={companyid}
-        #     """
-        # ret_rows = self.cur.excecuteUpdate(s_sql)         
         
         return ret_rows #更新件数
     
@@ -357,21 +355,39 @@ class DataBaseClass:
         return df_place
     ###############################################################
     # 条件に合う取引明細データをDataFrameで返す
+    # 2023.10.24 データ抽出速度向上
     ###############################################################
-    def paylog_get(self,COCODE,sdate,edate):  
-        sql_paylog = f"""  
+    def paylog_get(self,COCODE,sdate,edate): 
+        sql_place = f"""  
+                            SELECT placecode
+                            FROM tbplace 
+                            where placecocode = {COCODE}
+                    """ 
+        #debug
+        #print('設置場所番号抽出開始：',datetime.datetime.now())   
+        
+        ret_place = self.cur.excecuteQuery(sql_place)
+        #print('抽出された設置場所コード',ret_place)
+        s_date = sdate.year * 10000 +  sdate.month * 100 + sdate.day
+        e_date = edate.year * 10000 +  edate.month * 100 + edate.day
+        
+        ret_place2 = []
+        for i in ret_place:
+            ret_place2.append(int(i[0]))
+            
+        p_array = tuple(ret_place2)
+        stmt = ','.join(['%s'] * len(ret_place2))
+        sql_place2 = f"""
                             SELECT *
                             FROM tbpaylog as a
                             inner join tbplace as c
                                  on (a.payplacecd = c.placecode)
-                    """
-        #debug
-        print('売上履歴データ処理１開始：',datetime.datetime.now())   
+                            WHERE paydatedec >= '{s_date}'
+                            AND paydatedec <= '{e_date}'
+                            AND payplacecd IN({stmt})                            
+                    """ %p_array        
         
-        ret_rows = self.cur.excecuteQuery(sql_paylog)
-        
-        #debug
-        print('売上履歴データ処理１終了：',datetime.datetime.now()) 
+        ret_rows = self.cur.excecuteQuery(sql_place2)
         
         colum_list = ['payyear','paymonth','payday','payhour','payminute', \
                     'paysecond','paypayno','payplacecd', 'paykbncd','paycardcd', \
@@ -382,66 +398,117 @@ class DataBaseClass:
         #改行コード外す
         df_paylog['placecocode'] = df_paylog['placecocode'].str.strip()
         df_paylog['placesisancode'] = df_paylog['placesisancode'].str.strip()
-        # 対象日付及び対象会社で抽出
-        df_paylog = df_paylog.astype({'payyear':int,'paymonth': int,'payday':int,'placecocode':str})   
         
-        s_date = sdate.year * 10000 +  sdate.month * 100 + sdate.day
-        e_date = edate.year * 10000 +  edate.month * 100 + edate.day
+        #debug
+        #print('設置場所番号抽出終了：',datetime.datetime.now()) 
         
-        df_paylog1 = df_paylog[(df_paylog['paydatedec'] >= s_date) & (df_paylog['paydatedec'] <= e_date) & (df_paylog['placecocode'] == COCODE)]   
+        # # 対象日付及び対象会社で抽出(廃止)
+        # df_paylog = df_paylog.astype({'payyear':int,'paymonth': int,'payday':int,'placecocode':str})   
         
-        return df_paylog1
+        # s_date = sdate.year * 10000 +  sdate.month * 100 + sdate.day
+        # e_date = edate.year * 10000 +  edate.month * 100 + edate.day
+        
+        # df_paylog1 = df_paylog[(df_paylog['paydatedec'] >= s_date) & (df_paylog['paydatedec'] <= e_date) & (df_paylog['placecocode'] == COCODE)]   
+        
+        return df_paylog
     ###############################################################
     # 条件に合う取引明細データの売上金額を年・月で集計
     ###############################################################
-    def paylog_sum_get(self,COCODE,sdate,edate):  
-        syear = sdate.year
-        eyear = edate.year
-        smonth = sdate.month
-        emonth = edate.month        
-        years = edate.year - sdate.year
-        if years < 2 and years >=0:    #2年以上のデータは対象外
-            sql_paylog = f"""  
-                                SELECT *
-                                FROM tbpaylog as a
-                                inner join tbplace as c
-                                    on (a.payplacecd = c.placecode)
-                        """
-            #debug
-            print('売上履歴データ処理２開始：',datetime.datetime.now())   
+    # def paylog_sum_get(self,COCODE,sdate,edate):  
+    #     syear = sdate.year
+    #     eyear = edate.year
+    #     smonth = sdate.month
+    #     emonth = edate.month        
+    #     years = edate.year - sdate.year
+    #     if years < 2 and years >=0:    #2年以上のデータは対象外
+    #         sql_paylog = f"""  
+    #                             SELECT *
+    #                             FROM tbpaylog as a
+    #                             inner join tbplace as c
+    #                                 on (a.payplacecd = c.placecode)
+    #                     """
+    #         #debug
+    #         print('売上履歴データ処理２開始：',datetime.datetime.now())   
             
-            ret_rows = self.cur.excecuteQuery(sql_paylog) 
+    #         ret_rows = self.cur.excecuteQuery(sql_paylog) 
             
-            #debug
-            print('売上履歴データ処理２終了：',datetime.datetime.now())   
+    #         #debug
+    #         print('売上履歴データ処理２終了：',datetime.datetime.now())   
             
-            colum_list = ['payyear','paymonth','payday','payhour','payminute', \
-                        'paysecond','paypayno','payplacecd', 'paykbncd','paycardcd', \
-                        'payprice','paydatedec','paydatestr','paytimestr', \
-                        'paydatedt','paydateholidayflg','paydateholiday', \
-                        'placecode','placename','placesisancode','placecocode']       
+    #         colum_list = ['payyear','paymonth','payday','payhour','payminute', \
+    #                     'paysecond','paypayno','payplacecd', 'paykbncd','paycardcd', \
+    #                     'payprice','paydatedec','paydatestr','paytimestr', \
+    #                     'paydatedt','paydateholidayflg','paydateholiday', \
+    #                     'placecode','placename','placesisancode','placecocode']       
             
-            df_paylog = pd.DataFrame(ret_rows,columns = colum_list)
-            #改行コード外す
-            df_paylog['placecocode'] = df_paylog['placecocode'].str.strip() 
-            df_paylog = df_paylog.astype({'payyear':int,'paymonth': int}) 
+    #         df_paylog = pd.DataFrame(ret_rows,columns = colum_list)
+    #         #改行コード外す
+    #         df_paylog['placecocode'] = df_paylog['placecocode'].str.strip() 
+    #         df_paylog = df_paylog.astype({'payyear':int,'paymonth': int}) 
             
-            df_paylog = df_paylog[(df_paylog['placecocode'] == COCODE)] #会社コード抽出 
+    #         df_paylog = df_paylog[(df_paylog['placecocode'] == COCODE)] #会社コード抽出 
             
-            if syear < eyear:            
-                df_paylog1 = df_paylog[(df_paylog['payyear'] == syear) & (df_paylog['paymonth'] >= smonth)]#開始年と等しく、開始月以上
-                df_paylog3 = df_paylog[(df_paylog['payyear'] == eyear) & (df_paylog['paymonth'] <= emonth)]#終了年と等しく、終了月以下
-                df_paylog5 = pd.concat([df_paylog1, df_paylog3])              
-            else:
-                if syear == eyear:
-                    df_paylog5 = df_paylog[(df_paylog['paymonth'] >= sdate.month) & (df_paylog['paymonth'] <= edate.month)] #開始月以上、終了月以下
+    #         if syear < eyear:            
+    #             df_paylog1 = df_paylog[(df_paylog['payyear'] == syear) & (df_paylog['paymonth'] >= smonth)]#開始年と等しく、開始月以上
+    #             df_paylog3 = df_paylog[(df_paylog['payyear'] == eyear) & (df_paylog['paymonth'] <= emonth)]#終了年と等しく、終了月以下
+    #             df_paylog5 = pd.concat([df_paylog1, df_paylog3])              
+    #         else:
+    #             if syear == eyear:
+    #                 df_paylog5 = df_paylog[(df_paylog['paymonth'] >= sdate.month) & (df_paylog['paymonth'] <= edate.month)] #開始月以上、終了月以下
  
-            df_paylog6 = pd.pivot_table(df_paylog5, index=['placename'], columns=['payyear','paymonth'],values=['payprice'],aggfunc='sum',margins=True,margins_name='Total')  #クロス集計 
-        else:
-            ret_rows = [9,]    
-            df_paylog6 = pd.DataFrame(ret_rows,columns = 'errcode')
+    #         df_paylog6 = pd.pivot_table(df_paylog5, index=['placename'], columns=['payyear','paymonth'],values=['payprice'],aggfunc='sum',margins=True,margins_name='Total')  #クロス集計 
+    #     else:
+    #         ret_rows = [9,]    
+    #         df_paylog6 = pd.DataFrame(ret_rows,columns = 'errcode')
         
-        return df_paylog6
+    #     return df_paylog6
+    
+    def paylog_sum_get(self,COCODE,sdate,edate):
+        sql_place = f"""  
+                            SELECT placecode
+                            FROM tbplace 
+                            where placecocode = {COCODE}
+                    """ 
+        # 指定された会社コードで設置先コード取得
+        ret_place = self.cur.excecuteQuery(sql_place)
+        #print('抽出された設置場所コード',ret_place)
+        #s_date = sdate.year * 10000 +  sdate.month * 100 + sdate.day
+        s_date = 20220501
+        e_date = edate.year * 10000 +  edate.month * 100 + edate.day
+        
+        ret_place2 = []
+        for i in ret_place:
+            ret_place2.append(int(i[0]))
+        
+        #対象設置先コード、日付で売上履歴データ取得            
+        p_array = tuple(ret_place2)
+        stmt = ','.join(['%s'] * len(ret_place2))
+        sql_place2 = f"""
+                            SELECT *
+                            FROM tbpaylog as a
+                            inner join tbplace as c
+                                 on (a.payplacecd = c.placecode)
+                            WHERE paydatedec >= '{s_date}'
+                            AND paydatedec <= '{e_date}'
+                            AND payplacecd IN({stmt})                            
+                    """ %p_array        
+        
+        ret_rows = self.cur.excecuteQuery(sql_place2)
+        
+        colum_list = ['payyear','paymonth','payday','payhour','payminute', \
+                    'paysecond','paypayno','payplacecd', 'paykbncd','paycardcd', \
+                    'payprice','paydatedec','paydatestr','paytimestr', \
+                    'paydatedt','paydateholidayflg','paydateholiday', \
+                    'placecode','placename','placesisancode','placecocode']
+        df_paylog = pd.DataFrame(ret_rows,columns = colum_list) 
+        #改行コード外す
+        df_paylog['placecocode'] = df_paylog['placecocode'].str.strip()
+        df_paylog['placesisancode'] = df_paylog['placesisancode'].str.strip()
+        
+        #df_paylog = pd.pivot_table(df_paylog, index=['placename'], columns=['payyear','paymonth'],values=['payprice'],aggfunc='sum',margins=True,margins_name='Total')   
+        #df_paylog = pd.pivot_table(df_paylog, index=['payyear','paymonth'], columns=['placename'],values=['payprice'],aggfunc='sum',margins=True,margins_name='Total') 
+        
+        return df_paylog
     
     ##############################################################
     # データベースバックアップ
@@ -472,147 +539,6 @@ class DataBaseClass:
                 fp.write(dump_result) 
         
         return 0
-    ##############################################################
-    # 金種別時間別集計データ抽出
-    # ##############################################################
-    def kinsyu_dataget(self,COCODE,sdate,edate,kbn):
-        #会社コートをもとに設置場所番号を抽出
-        placecd_array = self.get_placecd(COCODE)
-        p_array = tuple(placecd_array)
-        stmt = ','.join(['%s'] * len(placecd_array))
-        
-        q_sql = f"""
-        SELECT paydatedec,payprice,payhour,count(tbpaylog.payprice)
-        FROM tbpaylog
-        WHERE paydatedec >= '{sdate}'
-        AND paydatedec <= '{edate}'
-        AND paykbncd = '{kbn}'
-        AND payplacecd IN({stmt})
-        GROUP BY paydatedec,payprice,payhour
-        """ %p_array        
-        
-        kinsyu_data = self.cur.excecuteQuery(q_sql) 
-        comb_list = []
-        sum_price_list = {}
-        #対象データがあった場合の処理
-        #if kinsyu_data != None:
-        if len(kinsyu_data) > 0:        
-            now_date = ''
-            now_price  = 0
-            now_hour = 0    
-            ix = 0  
-            a_list = []
-            b_list = [] 
-            comb_list = []
-            sum_list = []
-            sum_price_list = {} #金種別合計は辞書型で集計
-            #b_list = ['日付','単価','0時','1時','2時','3時','4時','5時','6時','7時','8時','9時','10時',11時','12時',
-            # '13時','14時','15時','16時','17時','18時','19時','20時','21時','22時','23時','24時',]
-            init_flg = '1' 
-            a_list  = [0 for i in range(27)]
-            sum_list  = [0 for i in range(27)]
-            #金種別データを横展開
-            for ix in kinsyu_data:
-                #日付が変わった時の処理
-                if str(ix[0]) != now_date:
-                    if init_flg == '1':
-                        now_date = str(ix[0]) 
-                        a_list.pop(0)
-                        a_list.insert(0,now_date)
-                    else:
-                        b_list.append(a_list)
-                        a_list  = [0 for i in range(27)]
-                        now_date = str(ix[0]) 
-                        a_list.pop(0)
-                        a_list.insert(0,now_date)  
-                        init_flg = '1'
-                #金種が変わった時の処理
-                if ix[1] != now_price:
-                    if init_flg == '1':
-                        now_price = ix[1] 
-                        a_list.pop(1)
-                        a_list.insert(1,now_price)
-                        #設定された金種が辞書に入っていなければ追加
-                        if now_price in sum_price_list.keys():
-                            pass
-                        else:
-                            sum_price_list[now_price] = 0
-                    else:
-                        b_list.append(a_list)
-                        a_list  = [0 for i in range(27)]
-                        now_price = ix[1]
-                        a_list.pop(0)
-                        a_list.insert(0,now_date)  
-                        a_list.pop(1)
-                        a_list.insert(1,now_price) 
-                        #設定された金種が辞書に入っていなければ追加
-                        if now_price in sum_price_list.keys():
-                            pass
-                        else:
-                            sum_price_list[now_price] = 0   
-                init_flg = '0'  
-                #時間毎のカウンター
-                if ix[2] != now_hour:
-                    hour_index = int(ix[2]) + 2
-                    a_list.pop(hour_index)
-                    a_list.insert(hour_index,int(ix[3]))
-                    count_data = sum_list.pop(hour_index)
-                    count_data += int(ix[3])
-                    sum_list.insert(hour_index,count_data) 
-                    #設定された金種のカウンターを加算して辞書を更新
-                    val = sum_price_list[now_price]
-                    val += int(ix[3])
-                    sum_price_list.pop(now_price)
-                    sum_price_list[now_price] = val                                
-            
-                b_list.append(a_list) #最終行の書き込み
-                b_list.append(sum_list) #時間別合計行の書き込み
-                    
-                #row_count = len(b_list)
-                
-                #データがある時間帯(カラム start~end)を確認
-                for ix in range(2,26):
-                    if sum_list[ix] != 0:
-                        start_index = ix
-                        break
-                    
-                for ix in reversed(range(2,26)):
-                    if sum_list[ix] != 0:
-                        end_index = ix
-                        break 
-                
-                #再度金種別データを再編成(zero除去)
-                coma_list = []
-                comb_list = []
-                #列名セット
-                coma_list.append('date')
-                coma_list.append('price')
-                for i in range(start_index,end_index+1):
-                        coma_list.append(i-2)
-                comb_list.append(coma_list) 
-                #金種別カウンターデータを有効領域で編集
-                coma_list = []     
-                now_date = ''
-                init_flg = '1'
-                for ix in b_list:
-                    if init_flg == '1':
-                        coma_list.append(ix[0])
-                        now_date = ix[0]
-                        init_flg = '0'
-                    else:
-                        if now_date != ix[0]:
-                            coma_list.append(ix[0])
-                            now_date = ix[0]
-                        else:
-                            coma_list.append('')
-                    coma_list.append(ix[1])
-                    for i in range(start_index,end_index+1):
-                        coma_list.append(ix[i])
-                    comb_list.append(coma_list) 
-                    coma_list = []                               
-        
-        return comb_list,sum_price_list
-        
     
     ###############################################################
     # ディストラクタ
