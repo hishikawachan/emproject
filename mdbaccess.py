@@ -38,6 +38,7 @@ sql1 = 'SELECT * FROM 納品書 \
 rows_nouhin = cursor.execute(sql1).fetchall()
 
 #print(f'納品No={row.納品No}, 納品合計金額={row.納品合計金額}, 摘要={row.摘要}, 納品日={row.納品日.strftime("%Y/%m/%d")}')
+print('納品書抽出処理開始')
 
 rows_nouhin_len = len(rows_nouhin)
 ###################################
@@ -92,6 +93,8 @@ rows_hosyu = cursor.execute(sql2).fetchall()
 
 rows_hosyu_len = len(rows_hosyu)
 
+print('保守伝票抽出処理開始')
+
 wb = openpyxl.load_workbook(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
 sh_hosyu = wb['保守実績']
 rowno = sh_hosyu.max_row + 1
@@ -105,13 +108,14 @@ for data_no in range(0, rows_hosyu_len):
             sh_hosyu.cell(rowno,1).value = wh_date
             ws_date = date(int(rows_hosyu[data_no].修理日.year), int(rows_hosyu[data_no].修理日.month), int(rows_hosyu[data_no].修理日.day))
             sh_hosyu.cell(rowno,2).value = ws_date
-            sh_hosyu.cell(rowno,3).value = rows_hosyu[data_no].ゴルフ場名
-            sh_hosyu.cell(rowno,4).value = rows_hosyu[data_no].作業内容
-            sh_hosyu.cell(rowno,5).value = rows_hosyu[data_no].総合計 
-            sh_hosyu.cell(rowno,6).value = wh_date.year
-            sh_hosyu.cell(rowno,7).value = wh_date.month
-            sh_hosyu.cell(rowno,8).value = 20
-            sh_hosyu.cell(rowno,9).value = 400
+            sh_hosyu.cell(rowno,3).value = rows_hosyu[data_no].ゴルフ場No
+            sh_hosyu.cell(rowno,4).value = rows_hosyu[data_no].ゴルフ場名
+            sh_hosyu.cell(rowno,5).value = rows_hosyu[data_no].作業内容
+            sh_hosyu.cell(rowno,6).value = rows_hosyu[data_no].総合計 
+            sh_hosyu.cell(rowno,7).value = wh_date.year
+            sh_hosyu.cell(rowno,8).value = wh_date.month
+            sh_hosyu.cell(rowno,9).value = 20
+            sh_hosyu.cell(rowno,11).value = 400
             rowno += 1
 
 wb.save(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
