@@ -14,6 +14,7 @@ import os
 from datetime import datetime, date
 import openpyxl
 import pyexcel as p
+import xlwings as xw
 
 wb = openpyxl.load_workbook(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
 sh_jyutyu = wb['受注見込']
@@ -47,10 +48,15 @@ for file in os.listdir(file_dir):
                 # 見積りファイルから金額等を取り出す
                 #
                 #########################################################
-                if ext == '.xls': #.xlsファイルの変換
-                    wk_filepath = base + ".xlsx"
+                if ext == '.xls': #.xlsファイルのファイル名を一時的に変換
+                    wk_filepath = base + '.xlsx'
                     new_file = os.path.join(file_dir,wk_filepath)
-                    p.save_book_as(file_name=file_path, dest_file_name=new_file)
+                    #p.save_book_as(file_name=file_path, dest_file_name=new_file)
+                    #オブジェクト作成し、新規ブック作成＝Excel自動起動
+                    wb = xw.Book()
+                    wb = xw.Book(file_path) #現在ファイルの読込み
+                    wb.save(new_file)
+                    wb.close()
                     flg = 1
                 else:
                     new_file = file_path
@@ -59,30 +65,36 @@ for file in os.listdir(file_dir):
                 new_base, new_ext = os.path.splitext(new_file)
 
                 if new_ext == '.xlsx':
-                    wbm = openpyxl.load_workbook(new_file,data_only=True)
-                    wk_companyname = ""
-                    wk_sales = 0
-                    for shm in wbm.sheetnames:
-                        if shm == 'Sheet1': #sheet1のみ検索対象とする    
-                            sh_mitu = wbm[shm]                   
-                            for row_no in range(1,27):
-                                for col_no in range(1,12):
-                                    wk_str = sh_mitu.cell(row_no,col_no).value
-                                    #if shm.cell(row_no,col_no).value == '御中': #社名検索
-                                    if wk_str == '御中': #社名検索
-                                        wk_companyname = sh_mitu.cell(row_no,col_no-4).value
-                                        print('社名  :',wk_companyname)
-                                    if sh_mitu.cell(row_no,col_no).value == '総金額': #総額検索
-                                        if sh_mitu.cell(row_no,col_no+2).value != None:
-                                            if sh_mitu.cell(row_no,col_no+2).value >= 0:
-                                                wk_sales = int(sh_mitu.cell(row_no,col_no+2).value)
-                                                print('金額  :',wk_sales)
+                    try:
+                        wbm = openpyxl.load_workbook(new_file,data_only=True)
+                        wk_companyname = ""
+                        wk_sales = 0
+                        for shm in wbm.sheetnames:
+                            print('シートの読込 =',shm)
+                            if shm == 'Sheet1': #sheet1のみ検索対象とする    
+                                sh_mitu = wbm[shm]                   
+                                for row_no in range(1,27):
+                                    for col_no in range(1,12):
+                                        wk_str = sh_mitu.cell(row_no,col_no).value
+                                        #if shm.cell(row_no,col_no).value == '御中': #社名検索
+                                        if wk_str == '御中': #社名検索
+                                            wk_companyname = sh_mitu.cell(row_no,col_no-4).value
+                                            print('社名  :',wk_companyname)
+                                        if sh_mitu.cell(row_no,col_no).value == '総金額': #総額検索
+                                            if sh_mitu.cell(row_no,col_no+2).value != None:
+                                                if sh_mitu.cell(row_no,col_no+2).value >= 0:
+                                                    wk_sales = int(sh_mitu.cell(row_no,col_no+2).value)
+                                                    print('金額  :',wk_sales)
+                    except FileNotFoundError:
+                        print('ファイルが読み込めない New_File = ',new_file)
+                        if flg == 1:
+                            print('変換前ファイル名 = ',file_path)
                     if wk_companyname != "":
                         sh_jyutyu.cell(rowno,6).value = wk_companyname
                     if wk_sales >= 0:
                         sh_jyutyu.cell(rowno,7).value = wk_sales
 
-                    if flg == 1:                 
+                    if flg == 1: #一次的に変換したファイルを削除                 
                         os.remove(new_file)
 
                 rowno += 1
