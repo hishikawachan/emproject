@@ -31,10 +31,13 @@ cursor = con.cursor()
 ###################################
 # 納品書データを日付で抽出
 # 指定日付はSQL文を変更
-###################################
+# ###################################
+# sql1 = 'SELECT * FROM 納品書 \
+#         LEFT JOIN ゴルフ場名簿 ON(納品書.ゴルフ場No = ゴルフ場名簿.ゴルフ場No) \
+#         WHERE 納品日 Between #2024/01/01# AND #2024/01/31#'
 sql1 = 'SELECT * FROM 納品書 \
         LEFT JOIN ゴルフ場名簿 ON(納品書.ゴルフ場No = ゴルフ場名簿.ゴルフ場No) \
-        WHERE 納品日 Between #2024/01/01# AND #2024/01/31#'
+        WHERE 納品No > 6589'
 rows_nouhin = cursor.execute(sql1).fetchall()
 
 #print(f'納品No={row.納品No}, 納品合計金額={row.納品合計金額}, 摘要={row.摘要}, 納品日={row.納品日.strftime("%Y/%m/%d")}')
@@ -44,7 +47,8 @@ rows_nouhin_len = len(rows_nouhin)
 ###################################
 #  売上実績を計画表に書き込み
 ###################################
-wb = openpyxl.load_workbook(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
+#wb = openpyxl.load_workbook(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
+wb = openpyxl.load_workbook(r'C:\Users\hishi\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
 sh_nouhin = wb['売上実績']
 rowno = sh_nouhin.max_row + 1
 start_rowno = rowno
@@ -64,7 +68,8 @@ for data_no in range(0, rows_nouhin_len):
             sh_nouhin.cell(rowno,7).value = w_date.month
             rowno += 1
             
-wb.save(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
+#wb.save(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
+wb.save(r'C:\Users\hishi\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
 
 cursor.close()
 con.close()
@@ -84,7 +89,7 @@ sql2 = 'SELECT * FROM ( 修理表 \
         ON(修理表.受付No = 受付表.受付No)) \
         LEFT JOIN ゴルフ場名簿 \
         ON(受付表.ゴルフ場No = ゴルフ場名簿.ゴルフ場No) \
-        WHERE 発行日 Between #2023/12/01# AND #2024/01/31#'
+        WHERE 発行日 Between #2024/01/01# AND #2024/01/31#'
 
 con = pyo.connect(con_str2)
 cursor = con.cursor()
@@ -95,7 +100,8 @@ rows_hosyu_len = len(rows_hosyu)
 
 print('保守伝票抽出処理開始')
 
-wb = openpyxl.load_workbook(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
+#wb = openpyxl.load_workbook(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
+wb = openpyxl.load_workbook(r'C:\Users\hishi\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
 sh_hosyu = wb['保守実績']
 rowno = sh_hosyu.max_row + 1
 start_rowno = rowno
@@ -118,6 +124,8 @@ for data_no in range(0, rows_hosyu_len):
             sh_hosyu.cell(rowno,11).value = 400
             rowno += 1
 
-wb.save(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
+#wb.save(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
+wb.save(r'C:\Users\hishi\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
+
 cursor.close()
 con.close()

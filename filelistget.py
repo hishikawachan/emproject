@@ -13,12 +13,13 @@
 import os
 from datetime import datetime, date
 import openpyxl
-import pyexcel as p
+#import pyexcel as p
 import xlwings as xw
 
-wb = openpyxl.load_workbook(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
-sh_jyutyu = wb['受注見込']
-rowno = sh_jyutyu.max_row + 1
+#wb = openpyxl.load_workbook(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
+#wb = openpyxl.load_workbook(r'C:\Users\hishi\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
+#sh_jyutyu = wb['受注見込']
+#rowno = sh_jyutyu.max_row + 1
 
 outcount = 0
 file_dir = r'Z:\見積書'
@@ -30,12 +31,22 @@ print('処理開始')
 for file in os.listdir(file_dir):
     base, ext = os.path.splitext(file)
     if ext == '.xlsx' or ext == '.xls':
-        file_path = os.path.join(file_dir, file)      
-        file_info = os.stat(file_path)
-        create_date = datetime.fromtimestamp(file_info.st_ctime)
-        update_date = datetime.fromtimestamp(file_info.st_mtime)
+        file_path = os.path.join(file_dir, file) 
+        try:     
+            file_info = os.stat(file_path)
+            create_date = datetime.fromtimestamp(file_info.st_ctime)
+            update_date = datetime.fromtimestamp(file_info.st_mtime)
+        except FileNotFoundError:
+            print('ファイルが読み込めない New_File = ',file_path)
+            create_date = datetime(1900,1,1,0,0,0)
         if create_date >= input_fromdate:
             if create_date <= input_todate:
+                #wb = openpyxl.load_workbook(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
+                #wb = openpyxl.load_workbook(r'C:\Users\hishi\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
+                wb = openpyxl.load_workbook(r'C:\Users\hishi\OneDrive\Workplace\2024年営業計画\wk_book.xlsx')
+                #sh_jyutyu = wb['受注見込']
+                sh_jyutyu = wb['Sheet1']
+                rowno = sh_jyutyu.max_row + 1
                 sh_jyutyu.cell(rowno,1).value = base
                 sh_jyutyu.cell(rowno,2).font = openpyxl.styles.fonts.Font(color='00FFFF')
                 sh_jyutyu.cell(rowno,2).hyperlink = file_path
@@ -53,10 +64,11 @@ for file in os.listdir(file_dir):
                     new_file = os.path.join(file_dir,wk_filepath)
                     #p.save_book_as(file_name=file_path, dest_file_name=new_file)
                     #オブジェクト作成し、新規ブック作成＝Excel自動起動
-                    wb = xw.Book()
-                    wb = xw.Book(file_path) #現在ファイルの読込み
-                    wb.save(new_file)
-                    wb.close()
+                    #wb = xw.Book()
+                    wbx = xw.Book(file_path) #現在ファイルの読込み
+                    wbx.save(new_file)
+                    print('ファイル変換 = ',new_file)
+                    wbx.close()
                     flg = 1
                 else:
                     new_file = file_path
@@ -70,8 +82,8 @@ for file in os.listdir(file_dir):
                         wk_companyname = ""
                         wk_sales = 0
                         for shm in wbm.sheetnames:
-                            print('シートの読込 =',shm)
-                            if shm == 'Sheet1': #sheet1のみ検索対象とする    
+                            #print('シートの読込 =',shm)
+                            if shm == 'Sheet1': #Sheet1のみ検索対象とする    
                                 sh_mitu = wbm[shm]                   
                                 for row_no in range(1,27):
                                     for col_no in range(1,12):
@@ -93,12 +105,18 @@ for file in os.listdir(file_dir):
                         sh_jyutyu.cell(rowno,6).value = wk_companyname
                     if wk_sales >= 0:
                         sh_jyutyu.cell(rowno,7).value = wk_sales
+                    
+                    #wb.save(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
+                    #wb.save(r'C:\Users\hishi\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
+                    wb.save(r'C:\Users\hishi\OneDrive\Workplace\2024年営業計画\wk_book.xlsx')
 
-                    if flg == 1: #一次的に変換したファイルを削除                 
+                    if flg == 1: #一次的に変換したファイルを削除  
+                        print('削除したファイル名 = ',new_file)               
                         os.remove(new_file)
 
                 rowno += 1
                 outcount += 1
 
 print('出力件数', outcount)
-wb.save(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
+#wb.save(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
+#wb.save(r'C:\Users\hishi\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
