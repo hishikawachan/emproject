@@ -1,6 +1,6 @@
 # Virtualenv
 # http://iamzed.com/2009/05/07/a-primer-on-virtualenv/
-.__pycache__/
+__pycache__/
 .vscode/
 .Python
 [Bb]in
