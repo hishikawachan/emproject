@@ -15,6 +15,17 @@ import pyodbc as pyo
 import openpyxl
 from datetime import date
 
+#ワークシートを事前にクリアする
+wb = openpyxl.load_workbook(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\wk_nouhin.xlsx')
+wb.remove(wb.worksheets[-1])
+ws = wb.create_sheet(title="Sheet1")
+wb.save(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\wk_nouhin.xlsx')
+
+wb = openpyxl.load_workbook(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\wk_syuri.xlsx')
+wb.remove(wb.worksheets[-1])
+ws = wb.create_sheet(title="Sheet1")
+wb.save(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\wk_syuri.xlsx')
+
 ##########################################
 #
 #  納品書DB　アクセス
@@ -23,7 +34,7 @@ from datetime import date
 
 con_str1 = (
 	r'Driver={Microsoft Access Driver (*.mdb, *.accdb)};'
-	r'DBQ=Z:\データベース\納品書\納品書(税率10％ 西暦表示 版)\納品書Ver.1.2元データ用(2024版 税率10% 西暦表示).mdb;'
+	r'DBQ=C:\Users\user\Desktop\納品書Ver.1.2元データ用(2024版 税率10% 西暦表示).mdb;'
 	)
 
 con = pyo.connect(con_str1)
@@ -32,12 +43,12 @@ cursor = con.cursor()
 # 納品書データを日付で抽出
 # 指定日付はSQL文を変更
 # ###################################
-# sql1 = 'SELECT * FROM 納品書 \
-#         LEFT JOIN ゴルフ場名簿 ON(納品書.ゴルフ場No = ゴルフ場名簿.ゴルフ場No) \
-#         WHERE 納品日 Between #2024/01/01# AND #2024/01/31#'
 sql1 = 'SELECT * FROM 納品書 \
         LEFT JOIN ゴルフ場名簿 ON(納品書.ゴルフ場No = ゴルフ場名簿.ゴルフ場No) \
-        WHERE 納品No > 6589'
+        WHERE 納品日 Between #2024/04/01# AND #2024/04/30#'
+#sql1 = 'SELECT * FROM 納品書 \
+#        LEFT JOIN ゴルフ場名簿 ON(納品書.ゴルフ場No = ゴルフ場名簿.ゴルフ場No) \
+#        WHERE 納品No > 6589'
 rows_nouhin = cursor.execute(sql1).fetchall()
 
 #print(f'納品No={row.納品No}, 納品合計金額={row.納品合計金額}, 摘要={row.摘要}, 納品日={row.納品日.strftime("%Y/%m/%d")}')
@@ -45,11 +56,11 @@ print('納品書抽出処理開始')
 
 rows_nouhin_len = len(rows_nouhin)
 ###################################
-#  売上実績を計画表に書き込み
+#  売上実績をワークファイルに書き込み
 ###################################
 #wb = openpyxl.load_workbook(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
-wb = openpyxl.load_workbook(r'C:\Users\hishi\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
-sh_nouhin = wb['売上実績']
+wb = openpyxl.load_workbook(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\wk_nouhin.xlsx')
+sh_nouhin = wb['Sheet1']
 rowno = sh_nouhin.max_row + 1
 start_rowno = rowno
 #print(f'最終行 = {maxr}')
@@ -69,17 +80,17 @@ for data_no in range(0, rows_nouhin_len):
             rowno += 1
             
 #wb.save(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
-wb.save(r'C:\Users\hishi\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
+wb.save(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\wk_nouhin.xlsx')
 
 cursor.close()
 con.close()
 
 ###################################
-# 保守伝票データを日付で抽出
+# 修理伝票データを日付で抽出
 ###################################
 con_str2 = (
 	r'Driver={Microsoft Access Driver (*.mdb, *.accdb)};'
-	r'DBQ=Z:\データベース\修理伝票\元データリンク版\修理伝票データベースVr.1.3元データリンク版 - 2023 - .mdb;'
+    r'DBQ=C:\Users\user\Desktop\修理伝票データベースVr.1.3元データリンク版 - 2023 - .mdb;'
 	)
 ###################################
 # 指定日付はSQL文を変更
@@ -89,7 +100,7 @@ sql2 = 'SELECT * FROM ( 修理表 \
         ON(修理表.受付No = 受付表.受付No)) \
         LEFT JOIN ゴルフ場名簿 \
         ON(受付表.ゴルフ場No = ゴルフ場名簿.ゴルフ場No) \
-        WHERE 発行日 Between #2024/01/01# AND #2024/01/31#'
+        WHERE 発行日 Between #2024/04/01# AND #2024/04/30#'
 
 con = pyo.connect(con_str2)
 cursor = con.cursor()
@@ -98,11 +109,11 @@ rows_hosyu = cursor.execute(sql2).fetchall()
 
 rows_hosyu_len = len(rows_hosyu)
 
-print('保守伝票抽出処理開始')
+print('修理伝票抽出処理開始')
 
 #wb = openpyxl.load_workbook(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
-wb = openpyxl.load_workbook(r'C:\Users\hishi\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
-sh_hosyu = wb['保守実績']
+wb = openpyxl.load_workbook(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\wk_syuri.xlsx')
+sh_hosyu = wb['Sheet1']
 rowno = sh_hosyu.max_row + 1
 start_rowno = rowno
 
@@ -125,7 +136,7 @@ for data_no in range(0, rows_hosyu_len):
             rowno += 1
 
 #wb.save(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
-wb.save(r'C:\Users\hishi\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
+wb.save(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\wk_syuri.xlsx')
 
 cursor.close()
 con.close()

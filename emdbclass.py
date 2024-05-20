@@ -446,7 +446,7 @@ class DataBaseClass:
         with open(input_filepath, encoding = 'UTF-8') as f:
             reader = csv.reader(f)
             for row in reader :
-                if row[2] != '現金' and row[3] != '未了（不明）' and row[3] != '未了（未書込）' : #現段階では現金データは対象外とする。未了は対象外
+                if row[2] != '現金' and row[3] != '未了（不明）' and row[3] != '未了（未書込）' and row[3] != '未了（書込済）': #現段階では現金データは対象外とする。未了は対象外
                     # 日付範囲の判定
                     # 決済日時取得
                     if in_count == 0:
