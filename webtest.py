@@ -53,6 +53,6 @@ element = driver.find_element(By.XPATH,'//*[@id="app"]/div/main/div/div[2]/div/d
 element.click()
 time.sleep(3)
 
-time.sleep(3)
+print('処理終了')
 
 
