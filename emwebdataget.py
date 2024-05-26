@@ -123,7 +123,7 @@ class Webdataget:
         #element = driver.find_element(By.XPATH,'//*[@id="app"]/div/main/div/div[2]/div/div/div[1]/div[3]/div/div/div[2]/button')
         element = driver.find_element(By.XPATH,self.download_btn)
         element.click()
-        time.sleep(3)
+        time.sleep(7)
 
         driver.quit()
         print('ファイル取得完了',datetime.datetime.now())

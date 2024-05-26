@@ -80,7 +80,7 @@ if __name__ == "__main__":
                 print('*****************************************')
                 print('対象会社 :',ret_rows[i][1])
                 #debug
-                print('対象データ自動取得開始 :',datetime.datetime.now())
+                #print('対象データ自動取得開始 :',datetime.datetime.now())
                 #class初期化
                 reswdg = Webdataget(web_data,ret_rows[i])
                 res = reswdg.webdataget()
