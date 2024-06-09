@@ -37,11 +37,19 @@ class Webdataget:
         self.uri_btn = web_data[11]
         self.income_btn = web_data[12]
         self.inputopen_btn = web_data[13]
-        self.startdate_input = web_data[14]
-        self.enddate_input = web_data[15]
+        self.startdatetime_input = web_data[14]
+        self.enddatetime_input = web_data[15]
         self.search_btn = web_data[16]
-        self.download_btn = web_data[17]            
-        
+        self.download_btn = web_data[17]     
+
+        self.area_gether_btn = web_data[18]   
+        self.gether_dropdown = web_data[19]  
+        self.gether_dropdown_no = web_data[20]    
+        self.startdate_input= web_data[21]
+        self.enddate_input = web_data[22]
+        self.gether_btn = web_data[23]
+        self.gether_num = web_data[24]
+
         self.fiename = company_data[10] #入力ファイル名
         self.groupcd = company_data[11] #所属コード
         self.accountcd = company_data[12] #アカウントコード
@@ -101,17 +109,18 @@ class Webdataget:
         #element = driver.find_element(By.XPATH,'//*[@id="app"]/div/header/div/button/span/i')
         element = driver.find_element(By.XPATH,self.inputopen_btn)
         element.click()
-        time.sleep(2)
+        time.sleep(6)
 
         #検索日時情報を入力し、検索開始
         from_datetime = str(self.startday) + ' ' + str(self.from_time)
         to_datetime = str(self.endday) + ' ' + str(self.to_time)
 
-        #driver.find_element(By.ID,"input-110").send_keys("2024-05-11 03:00")
-        driver.find_element(By.XPATH,self.startdate_input).send_keys(from_datetime)
-        time.sleep(2)
-        #driver.find_element(By.ID,"input-118").send_keys("2024-05-20 23:00")
-        driver.find_element(By.XPATH,self.enddate_input).send_keys(to_datetime)
+        driver.find_element(By.ID,self.startdatetime_input).send_keys(from_datetime)
+        #driver.find_element(By.XPATH,self.startdatetime_input).send_keys(from_datetime)
+        time.sleep(3)
+        driver.find_element(By.ID,self.enddatetime_input).send_keys(to_datetime)
+        #driver.find_element(By.XPATH,self.enddatetime_input).send_keys(to_datetime)
+        #driver.find_element(By.ID,self.enddatetime_input).send_keys(to_datetime)
         time.sleep(2)
 
         #element = driver.find_element(By.XPATH,'//*[@id="searchButtonArea"]/div/div/div[2]/button')
@@ -123,10 +132,48 @@ class Webdataget:
         #element = driver.find_element(By.XPATH,'//*[@id="app"]/div/main/div/div[2]/div/div/div[1]/div[3]/div/div/div[2]/button')
         element = driver.find_element(By.XPATH,self.download_btn)
         element.click()
-        time.sleep(7)
+        time.sleep(10)
+
+        # 集計範囲の集計金額を取得する
+        #インカム情報メニューを開く
+        #element = driver.find_element(By.XPATH,'//*[@id="app"]/div[1]/header/div/div[3]/span[1]/button[1]/span/i')
+        element = driver.find_element(By.XPATH,self.uri_btn)
+        element.click()
+        time.sleep(1)
+        element = driver.find_element(By.XPATH, self.area_gether_btn)
+        element.click()
+        time.sleep(2)
+        # 集計単位ドロップメニューを開く
+        element = driver.find_element(By.XPATH, self.gether_dropdown)
+        #select = Select(dropdown)
+        #select.select_by_index(int(self.gether_dropdown_no))
+        element.click()
+        time.sleep(2)
+        # 期間集計を選択
+        element = driver.find_element(By.XPATH, self.gether_dropdown_no)
+        #element = driver.find_element(By.ID, self.gether_dropdown_no)
+        element.click()
+        time.sleep(4)
+        # 検索日付の入力
+        #driver.find_element(By.XPATH,self.startdate_input).send_keys(self.startday)
+        driver.find_element(By.ID,self.startdate_input).send_keys(str(self.startday))
+        time.sleep(3)
+        #driver.find_element(By.XPATH,self.enddatetime_input).send_keys(self.endday)
+        driver.find_element(By.ID,self.enddate_input).send_keys(str(self.endday))
+        time.sleep(2)
+        # 集計ボタンを押す
+        element = driver.find_element(By.XPATH, self.gether_btn)
+        element.click()
+        time.sleep(10)
+
+        # 集計値を取得する
+        total = driver.find_element(By.XPATH, self.gether_num).text
+        print('集計値  :', total)
+
+        time.sleep(2)
 
         driver.quit()
         print('ファイル取得完了',datetime.datetime.now())
-        return 0
+        return total
 
 

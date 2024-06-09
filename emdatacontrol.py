@@ -23,6 +23,7 @@ import yaml
 from emdbclass import DataBaseClass
 import shutil
 from emwebdataget import Webdataget
+import openpyxl 
 
 #################################################################
 # メイン
@@ -56,10 +57,27 @@ if __name__ == "__main__":
             web_data.append(config_yaml['uri_btn'])
             web_data.append(config_yaml['income_btn'])
             web_data.append(config_yaml['inputopen_btn'])
-            web_data.append(config_yaml['startdate_input'])
-            web_data.append(config_yaml['enddate_input'])
+            web_data.append(config_yaml['startdatetime_input'])
+            web_data.append(config_yaml['enddatetime_input'])
             web_data.append(config_yaml['search_btn'])
             web_data.append(config_yaml['download_btn'])
+            web_data.append(config_yaml['area_gether_btn'])
+            web_data.append(config_yaml['gether_dropdown'])
+            web_data.append(config_yaml['gether_dropdown_no'])
+            web_data.append(config_yaml['startdate_input'])
+            web_data.append(config_yaml['enddate_input'])
+            web_data.append(config_yaml['gether_btn'])
+            web_data.append(config_yaml['gether_num'])
+            web_data.append(config_yaml['data_check_list'])
+            check_list = config_yaml['data_check_list']
+    # 集計データチェックリスト更新の準備
+    wb = openpyxl.load_workbook(f'{check_list}')
+    sh = wb.worksheets[0]
+    # 実施日入力エリアの指定・セット
+    cell = sh.cell(3, 5)
+    cell.value = str(datetime.date.today())
+    # 集計チェックリスト閉じる
+    wb.save(f'{check_list}')
     ########################################
     #
     # 会社データ毎の処理
@@ -79,17 +97,26 @@ if __name__ == "__main__":
             if td.days >= 0:                
                 print('*****************************************')
                 print('対象会社 :',ret_rows[i][1])
-                #debug
-                #print('対象データ自動取得開始 :',datetime.datetime.now())
-                #class初期化
+                # class初期化
                 reswdg = Webdataget(web_data,ret_rows[i])
-                res = reswdg.webdataget()
-                #ダウンロードしたファイルを規定のフォルダーに移す
+                # 売上明細データ自動取得 売上合計金額を返す
+                total = reswdg.webdataget()
+                # ダウンロードしたファイルを規定のフォルダーに移す
                 input_filepath = os.path.join(web_data[1],web_data[2])
                 output_filepath = os.path.join(web_data[0],ret_rows[i][10])
                 new_path = shutil.copy(input_filepath,output_filepath) 
                 os.remove(input_filepath) 
-        i += 1
+                # 売上集計チェックリストに合計金額をセット
+                wb = openpyxl.load_workbook(f'{check_list}')
+                sh = wb.worksheets[0]
+                for x in range(4,int(sh.max_row)):
+                     if sh.cell(x,1).value == ret_rows[i][0]: #会社コード一致
+                          sh.cell(x,5).value = total
+                          break
+                # 集計チェックリスト閉じる
+                wb.save(f'{check_list}')
+
+        #i += 1
     
     del resdb
     #print('ファイル取得終了：',datetime.datetime.now())            
