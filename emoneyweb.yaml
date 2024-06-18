@@ -31,9 +31,11 @@ income_btn: '//*[@id="app"]/div[1]/nav[2]/div[1]/div[1]/div[1]/div/a'
 # 日時範囲入力欄を開くボタン [13]
 inputopen_btn: '//*[@id="app"]/div/header/div/button/span/i'
 # 検索開始日時入力フィールド[14]
-startdatetime_input: "input-114"
+startdatetime_input: '/html/body/div[1]/div/div/div/nav[1]/div[1]/div[2]/div/form/div[1]/div[1]/div[2]/div[1]/section/div/div/div/div[1]/div[1]/input'
+#startdatetime_input: "input-110"
 # 検索終了日時入力フィールド [15]
-enddatetime_input: "input-122" 
+enddatetime_input: '/html/body/div[1]/div/div/div/nav[1]/div[1]/div[2]/div/form/div[1]/div[1]/div[2]/div[2]/section/div/div/div/div[1]/div[1]/input'
+#enddatetime_input: "input-118" 
 # データ検索開始ボタン [16]
 search_btn: '//*[@id="searchButtonArea"]/div/div/div[2]/button'
 #ダウンロード開始ボタン [17]
@@ -47,15 +49,15 @@ area_gether_btn: '//*[@id="app"]/div[1]/nav[2]/div[1]/div[1]/div[3]/div/a'
 # 集計単位ドロップダウンメニュー
 gether_dropdown: '//*[@id="controleArea"]/div[1]/div[2]/div'
 # ドロップダウンメニューINDEX
-#gether_dropdown_no: "list-item-248-2"
-gether_dropdown_no: '//*[@id="list-item-253-3"]/div/div'
+#gether_dropdown_no: "list-item-249-3"
+gether_dropdown_no: '/html/body/div[1]/div/div/div[2]/div/div[4]'
 # 検索開始日入力フィールド
-startdate_input: "input-262"
+startdate_input: '/html/body/div[1]/div/div/div[1]/nav[1]/div[1]/div[2]/div/form/div[1]/div[1]/div[2]/div[2]/section[1]/div/div/div/div[1]/div/input'
 # 検索終了日入力フィールド
-enddate_input: "input-269"
+enddate_input: '/html/body/div[1]/div/div/div[1]/nav[1]/div[1]/div[2]/div/form/div[1]/div[1]/div[2]/div[2]/section[2]/div/div/div/div[1]/div/input'
 # 集計ボタン
 gether_btn: '//*[@id="searchButtonArea"]/div/div/div[2]/button'
 # 集計値エリア
-gether_num: '//*[@id="app"]/div[1]/main/div/div[2]/div/div/div[1]/div[2]/div/section/div/div/div[1]/div/div[3]/div[2]/div/div/div/div[2]'
+gether_num: '/html/body/div[1]/div/div/div[1]/main/div/div[2]/div/div/div[1]/div[2]/div/section/div/div/div[1]/div/div[3]/div[2]/div/div/div/div[2]'
 # 集計データチェックリスト
 data_check_list: C:\Users\user\OneDrive\Workplace\emoney\saleschecklist.xlsx

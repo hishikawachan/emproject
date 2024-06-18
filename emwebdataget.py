@@ -19,7 +19,6 @@ from selenium.webdriver.common.by import By
 import time
 from datetime import datetime
 import datetime
-import os
 
 class Webdataget:
     def __init__(self,web_data,company_data):
@@ -63,7 +62,7 @@ class Webdataget:
 # TOAMAS 自動起動～ログイン～対象データ取得
 #
 #########################################
-    def webdataget(self):
+    def dataget(self):
         print('ファイル取得開始',datetime.datetime.now())
 
         # Chrome Webドライバー の インスタンスを生成
@@ -93,13 +92,13 @@ class Webdataget:
         #各種メニュー画面に遷移
         #driver.get('https://toamas-amusement.thincacloud.com/')
         driver.get(self.toamas_url2)
-        time.sleep(2)
+        time.sleep(10)
 
         #インカム情報メニューを開く
         #element = driver.find_element(By.XPATH,'//*[@id="app"]/div[1]/header/div/div[3]/span[1]/button[1]/span/i')
         element = driver.find_element(By.XPATH,self.uri_btn)
         element.click()
-        time.sleep(1)
+        time.sleep(2)
         #element = driver.find_element(By.XPATH,'//*[@id="app"]/div[1]/nav[2]/div[1]/div[1]/div[1]/div/a')
         element = driver.find_element(By.XPATH,self.income_btn)
         element.click()
@@ -109,18 +108,17 @@ class Webdataget:
         #element = driver.find_element(By.XPATH,'//*[@id="app"]/div/header/div/button/span/i')
         element = driver.find_element(By.XPATH,self.inputopen_btn)
         element.click()
-        time.sleep(6)
+        time.sleep(8)
 
         #検索日時情報を入力し、検索開始
         from_datetime = str(self.startday) + ' ' + str(self.from_time)
         to_datetime = str(self.endday) + ' ' + str(self.to_time)
 
-        driver.find_element(By.ID,self.startdatetime_input).send_keys(from_datetime)
-        #driver.find_element(By.XPATH,self.startdatetime_input).send_keys(from_datetime)
+        #driver.find_element(By.ID,self.startdatetime_input).send_keys(from_datetime)
+        driver.find_element(By.XPATH,self.startdatetime_input).send_keys(from_datetime)
         time.sleep(3)
-        driver.find_element(By.ID,self.enddatetime_input).send_keys(to_datetime)
-        #driver.find_element(By.XPATH,self.enddatetime_input).send_keys(to_datetime)
         #driver.find_element(By.ID,self.enddatetime_input).send_keys(to_datetime)
+        driver.find_element(By.XPATH,self.enddatetime_input).send_keys(to_datetime)
         time.sleep(2)
 
         #element = driver.find_element(By.XPATH,'//*[@id="searchButtonArea"]/div/div/div[2]/button')
@@ -148,19 +146,19 @@ class Webdataget:
         #select = Select(dropdown)
         #select.select_by_index(int(self.gether_dropdown_no))
         element.click()
-        time.sleep(2)
+        time.sleep(3)
         # 期間集計を選択
         element = driver.find_element(By.XPATH, self.gether_dropdown_no)
         #element = driver.find_element(By.ID, self.gether_dropdown_no)
         element.click()
         time.sleep(4)
         # 検索日付の入力
-        #driver.find_element(By.XPATH,self.startdate_input).send_keys(self.startday)
-        driver.find_element(By.ID,self.startdate_input).send_keys(str(self.startday))
+        driver.find_element(By.XPATH,self.startdate_input).send_keys(str(self.startday))
+        #driver.find_element(By.ID,self.startdate_input).send_keys(str(self.startday))
         time.sleep(3)
-        #driver.find_element(By.XPATH,self.enddatetime_input).send_keys(self.endday)
-        driver.find_element(By.ID,self.enddate_input).send_keys(str(self.endday))
-        time.sleep(2)
+        driver.find_element(By.XPATH,self.enddate_input).send_keys(str(self.endday))
+        #driver.find_element(By.ID,self.enddate_input).send_keys(str(self.endday))
+        time.sleep(4)
         # 集計ボタンを押す
         element = driver.find_element(By.XPATH, self.gether_btn)
         element.click()
