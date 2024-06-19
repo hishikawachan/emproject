@@ -544,7 +544,7 @@ class DataBaseClass:
                             out_err += 1
                         
                     
-            db_updatedate = datetime_date[0] + '-' + datetime_date[1] + '-' + datetime_date[2]
+            #db_updatedate = datetime_date[0] + '-' + datetime_date[1] + '-' + datetime_date[2]
                         
             # if out_err > 0:
             #         print('入力不可件数：',out_err)
@@ -559,7 +559,8 @@ class DataBaseClass:
                 print('入力不可件数',out_err)
                 print('合計金額',sum_price)
             
-            return edit_status,out_count,db_updatedate    
+            #return edit_status,out_count,db_updatedate  
+            return edit_status,out_count
     ###############################################################
     # 会社データの次回処理予定日、対象範囲を更新
     ############################################################### 
@@ -594,6 +595,25 @@ class DataBaseClass:
                     WHERE comcode={companyid}
                 """            
             ret_rows = self.cur.excecuteUpdate(s_sql)         
+        
+        return ret_rows #更新件数    
+    ###############################################################
+    # 会社データの日付を指定日付に変更
+    ############################################################### 
+    def company_date_update(self,companyid, com_update, com_startdate, com_enddate):
+        s_sql = f'SELECT * FROM tbcompany WHERE comcode={companyid}'
+        ret_rows = self.cur.excecuteQuery(s_sql) 
+        
+        #指定日付をセットする
+        if len(ret_rows) > 0:
+            s_sql = f"""
+                UPDATE tbcompany 
+                SET comupdate = '{com_update}',
+                    comstartday = '{com_startdate}',
+                    comendday = '{com_enddate}'                   
+                WHERE comcode={companyid}
+            """
+            ret_rows = self.cur.excecuteUpdate(s_sql)      
         
         return ret_rows #更新件数    
     ###############################################################
