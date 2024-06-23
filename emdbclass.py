@@ -598,7 +598,7 @@ class DataBaseClass:
         
         return ret_rows #更新件数    
     ###############################################################
-    # 会社データの日付を指定日付に変更
+    # 会社データの内部日付を指定日付に変更
     ############################################################### 
     def company_date_update(self,companyid, com_update, com_startdate, com_enddate):
         s_sql = f'SELECT * FROM tbcompany WHERE comcode={companyid}'

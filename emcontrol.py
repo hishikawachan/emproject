@@ -13,17 +13,7 @@
 #     |- Pylance V2021.12
 #
 # [更新履歴]
-#   2023/3/16  新規作成
-#   2023/11/4  新バージョン作成
-# ======================================
-from datetime import datetime
-import datetime
-import os
-from emdbclass import DataBaseClass
-from emsyubetureport import dbSyubetuReport
-from emplacereport import dbPlaceReport
-from emkinsyureport import dbKinsyuReport
-from emjikanreport import dbJikanReport
+
 from emmonthreport import dbMonthReport
 from empricereport import dbPriceReport
 from empdfconv import dbPdfConv

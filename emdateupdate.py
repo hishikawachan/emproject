@@ -32,7 +32,7 @@ if __name__ == "__main__":
             conf = yaml.safe_load(dy)
             #print(conf)
             com_arry = conf['companys']
-    #データベース操作クラス初期化及び共通パラメータyamlファイルから取得
+    #データベース操作クラス初期化及び日付操作yamlファイルから取得した日付に更新
     resdb = DataBaseClass() 
     for com_no in com_arry:
         res = resdb.company_date_update(com_no, conf['updatedate'], conf['startdate'], conf['enddate'])
