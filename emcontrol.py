@@ -16,8 +16,16 @@
 
 from emmonthreport import dbMonthReport
 from empricereport import dbPriceReport
+from emjikanreport import dbJikanReport
+from emsyubetureport import dbSyubetuReport
+from emplacereport import dbPlaceReport
+from emkinsyureport import dbKinsyuReport
 from empdfconv import dbPdfConv
 from emzipfile import Zipfilecreate
+from emdbclass import DataBaseClass
+from datetime import datetime
+import datetime
+import os
 #################################################################
 # 共通パラメータ
 #################################################################
