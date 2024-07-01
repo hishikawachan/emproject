@@ -130,8 +130,8 @@ if __name__ == "__main__":
     
             if input_update == 'y':
                 res_row = resdb.company_updateday_update(com_code)
-                            
-        i += 1
+                
+            os.remove(attch_file)                 
     
     del resdb
     print('処理終了：',datetime.datetime.now())            

@@ -14,11 +14,11 @@
 #
 # [更新履歴]
 
-from emmonthreport import dbMonthReport
-from empricereport import dbPriceReport
+from emmonthsyubetu import dbMonthsyubetu
+from emmonthkinsyu import dbMonthkinsyu
 from emjikanreport import dbJikanReport
 from emsyubetureport import dbSyubetuReport
-from emplacereport import dbPlaceReport
+from emplacereport import  dbPlaceReport
 from emkinsyureport import dbKinsyuReport
 from empdfconv import dbPdfConv
 from emzipfile import Zipfilecreate
@@ -194,7 +194,7 @@ if __name__ == "__main__":
             print('月別決済種別売上集計処理開始      :',datetime.datetime.now())
             
             # 電子決済分
-            resmonth = dbMonthReport(df_syubetu, df_sum_paylog, file_out_path, '2', sdtime, edtime)
+            resmonth = dbMonthsyubetu(df_syubetu, df_sum_paylog, file_out_path, '2', sdtime, edtime)
             ret_month = resmonth.print_monthly()
             del resmonth
             
@@ -203,13 +203,13 @@ if __name__ == "__main__":
             # 現金分
             df_sum_paylog1 = df_sum_paylog[df_sum_paylog['paykbncd'] == '1']
             if len(df_paylog1) > 0:
-                resprice = dbPriceReport(df_sum_paylog, file_out_path, '1', sdtime, edtime)
+                resprice = dbMonthkinsyu(df_sum_paylog, file_out_path, '1', sdtime, edtime)
                 ret_price = resprice.print_pricemonthly()
                 del resprice
             # 電子決済分
             df_sum_paylog2 = df_sum_paylog[df_sum_paylog['paykbncd'] == '2']
             if len(df_paylog2) > 0:
-                resprice = dbPriceReport(df_sum_paylog, file_out_path, '2', sdtime, edtime)
+                resprice = dbMonthkinsyu(df_sum_paylog, file_out_path, '2', sdtime, edtime)
                 ret_price = resprice.print_pricemonthly()
                 del resprice
             

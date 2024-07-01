@@ -75,12 +75,13 @@ if __name__ == "__main__":
     sh = wb.worksheets[0]
     # エリアをクリア
     mrow = sh.max_row
-    for i in range(3, mrow):
-         cell = sh.cell(i, 5)
-         cell.value = None
+    mcol = sh.max_column
+    #for i in range(3, mrow):
+    #     cell = sh.cell(i, 5)
+    #     cell.value = None
     # 実施日入力エリアの指定・セット
-    cell = sh.cell(3, 5)
-    cell.value = str(datetime.date.today())
+    cell_date = sh.cell(3, mcol + 1)
+    cell_date.value = str(datetime.date.today())
     # 集計チェックリスト閉じる
     wb.save(f'{check_list}')
     ########################################
@@ -118,9 +119,9 @@ if __name__ == "__main__":
                 # 売上集計チェックリストに合計金額(int化)をセット
                 wb = openpyxl.load_workbook(f'{check_list}')
                 sh = wb.worksheets[0]
-                for x in range(4,int(sh.max_row)):
+                for x in range(4,int(mrow)):
                      if sh.cell(x,1).value == ret_rows[i][0]: #会社コード一致
-                          sh.cell(x,5).value = int(total.replace(',', ''))
+                          sh.cell(x,mcol+1).value = int(total.replace(',', ''))
                           #sh.cell(x,5).value = total
                           break
                 # 集計チェックリスト閉じる
