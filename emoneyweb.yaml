@@ -1,0 +1,63 @@
+# ファイル出力Path [0]
+dir_filepath: C:\Users\user\OneDrive\Workplace\emoney
+# 取得ファイル一次保管Path [1]
+data_filepath: C:\Users\user\Downloads
+# 取得ファイル名 [2]
+data_name: incomes.csv
+# 検索開始時間 [3]
+from_time: "03:00"
+# 検索終了時間 [4]
+to_time: "23:00"
+# 参照画面URL1 [5]
+toamas_url1: https://toamas-amusement.thincacloud.com/Logon
+# 参照画面URL2 [6]
+toamas_url2: https://toamas-amusement.thincacloud.com/
+# 各フィールド及びボタン
+#################
+# 集計対象ファイル取得
+#################
+# 所属コード [7]
+group_code: "input-39"
+# アカウントコード [8]
+account_code: "logon-id"
+# パスワード [9]
+password: "password"
+# ログオンボタン [10]
+logon_btn: '//*[@id="app"]/div[2]/div/form/div/div[3]/button'
+# 売上管理ボタン [11]
+uri_btn: '//*[@id="app"]/div[1]/header/div/div[3]/span[1]/button[1]/span/i'
+# インカム検索ボタン [12]
+income_btn: '//*[@id="app"]/div[1]/nav[2]/div[1]/div[1]/div[1]/div/a'
+# 日時範囲入力欄を開くボタン [13]
+inputopen_btn: '//*[@id="app"]/div/header/div/button/span/i'
+# 検索開始日時入力フィールド[14]
+startdatetime_input: '/html/body/div[1]/div/div/div/nav[1]/div[1]/div[2]/div/form/div[1]/div[1]/div[2]/div[1]/section/div/div/div/div[1]/div[1]/input'
+#startdatetime_input: "input-110"
+# 検索終了日時入力フィールド [15]
+enddatetime_input: '/html/body/div[1]/div/div/div/nav[1]/div[1]/div[2]/div/form/div[1]/div[1]/div[2]/div[2]/section/div/div/div/div[1]/div[1]/input'
+#enddatetime_input: "input-118" 
+# データ検索開始ボタン [16]
+search_btn: '//*[@id="searchButtonArea"]/div/div/div[2]/button'
+#ダウンロード開始ボタン [17]
+download_btn: '//*[@id="app"]/div/main/div/div[2]/div/div/div[1]/div[3]/div/div/div[2]/button'
+##############
+# 集計金額取得
+##############
+# エリア集計ボタン
+#area_gether_btn: '//*[@id="app"]/div[1]/nav[2]'
+area_gether_btn: '//*[@id="app"]/div[1]/nav[2]/div[1]/div[1]/div[3]/div/a'
+# 集計単位ドロップダウンメニュー
+gether_dropdown: '//*[@id="controleArea"]/div[1]/div[2]/div'
+# ドロップダウンメニューINDEX
+#gether_dropdown_no: "list-item-249-3"
+gether_dropdown_no: '/html/body/div[1]/div/div/div[2]/div/div[4]'
+# 検索開始日入力フィールド
+startdate_input: '/html/body/div[1]/div/div/div[1]/nav[1]/div[1]/div[2]/div/form/div[1]/div[1]/div[2]/div[2]/section[1]/div/div/div/div[1]/div/input'
+# 検索終了日入力フィールド
+enddate_input: '/html/body/div[1]/div/div/div[1]/nav[1]/div[1]/div[2]/div/form/div[1]/div[1]/div[2]/div[2]/section[2]/div/div/div/div[1]/div/input'
+# 集計ボタン
+gether_btn: '//*[@id="searchButtonArea"]/div/div/div[2]/button'
+# 集計値エリア
+gether_num: '/html/body/div[1]/div/div/div[1]/main/div/div[2]/div/div/div[1]/div[2]/div/section/div/div/div[1]/div/div[3]/div[2]/div/div/div/div[2]'
+# 集計データチェックリスト
+data_check_list: C:\Users\user\OneDrive\Workplace\emoney\saleschecklist.xlsx

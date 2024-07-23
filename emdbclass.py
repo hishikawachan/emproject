@@ -44,7 +44,9 @@ class DataBaseClass:
     #####################################
     def __init__(self):
         # 基本情報取得
-        with open('C:/emoney/emoney.yaml','r+',encoding="utf-8") as ry:
+        #with open('C:/emoney/emoney.yaml','r+',encoding="utf-8") as ry:
+        #with open('C:/Users/user/OneDrive/Workplace/emoney/emoney.yaml','r+',encoding="utf-8") as ry:
+        with open('C:/em/emproject/emoney.yaml','r+',encoding="utf-8") as ry:
             config_yaml = yaml.safe_load(ry)
             self.dbip = config_yaml['dbip']
             self.dbname = config_yaml['dbmarianame']
@@ -444,7 +446,7 @@ class DataBaseClass:
         with open(input_filepath, encoding = 'UTF-8') as f:
             reader = csv.reader(f)
             for row in reader :
-                if row[2] != '現金' and row[3] != '未了（不明）' and row[3] != '未了（未書込）' : #現段階では現金データは対象外とする。未了は対象外
+                if row[2] != '現金' and row[3] != '未了（不明）' and row[3] != '未了（未書込）' and row[3] != '未了（書込済）': #現段階では現金データは対象外とする。未了は対象外
                     # 日付範囲の判定
                     # 決済日時取得
                     if in_count == 0:
@@ -542,7 +544,7 @@ class DataBaseClass:
                             out_err += 1
                         
                     
-            db_updatedate = datetime_date[0] + '-' + datetime_date[1] + '-' + datetime_date[2]
+            #db_updatedate = datetime_date[0] + '-' + datetime_date[1] + '-' + datetime_date[2]
                         
             # if out_err > 0:
             #         print('入力不可件数：',out_err)
@@ -557,7 +559,8 @@ class DataBaseClass:
                 print('入力不可件数',out_err)
                 print('合計金額',sum_price)
             
-            return edit_status,out_count,db_updatedate    
+            #return edit_status,out_count,db_updatedate  
+            return edit_status,out_count
     ###############################################################
     # 会社データの次回処理予定日、対象範囲を更新
     ############################################################### 
@@ -592,6 +595,25 @@ class DataBaseClass:
                     WHERE comcode={companyid}
                 """            
             ret_rows = self.cur.excecuteUpdate(s_sql)         
+        
+        return ret_rows #更新件数    
+    ###############################################################
+    # 会社データの内部日付を指定日付に変更
+    ############################################################### 
+    def company_date_update(self,companyid, com_update, com_startdate, com_enddate):
+        s_sql = f'SELECT * FROM tbcompany WHERE comcode={companyid}'
+        ret_rows = self.cur.excecuteQuery(s_sql) 
+        
+        #指定日付をセットする
+        if len(ret_rows) > 0:
+            s_sql = f"""
+                UPDATE tbcompany 
+                SET comupdate = '{com_update}',
+                    comstartday = '{com_startdate}',
+                    comendday = '{com_enddate}'                   
+                WHERE comcode={companyid}
+            """
+            ret_rows = self.cur.excecuteUpdate(s_sql)      
         
         return ret_rows #更新件数    
     ###############################################################
