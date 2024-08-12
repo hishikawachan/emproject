@@ -124,7 +124,7 @@ class Webdataget:
         #element = driver.find_element(By.XPATH,'//*[@id="searchButtonArea"]/div/div/div[2]/button')
         element = driver.find_element(By.XPATH, self.search_btn)
         element.click()
-        time.sleep(5)
+        time.sleep(20)
 
         #検索したデータをダウンロードフォルダに保存
         #element = driver.find_element(By.XPATH,'//*[@id="app"]/div/main/div/div[2]/div/div/div[1]/div[3]/div/div/div[2]/button')
