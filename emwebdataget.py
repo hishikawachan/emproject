@@ -64,7 +64,7 @@ class Webdataget:
 #
 #########################################
     def dataget(self):
-        print('ファイル取得開始',datetime.datetime.now())
+        #print('ファイル取得開始',datetime.datetime.now())
 
         # Chrome Webドライバー の インスタンスを生成
         driver = webdriver.Chrome()
@@ -184,7 +184,7 @@ class Webdataget:
         time.sleep(2)
 
         driver.quit()
-        print('ファイル取得完了',datetime.datetime.now())
+        #print('ファイル取得完了',datetime.datetime.now())
         return total
 
 

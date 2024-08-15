@@ -23,13 +23,15 @@ import yaml
 from emdbclass import DataBaseClass
 import shutil
 from emwebdataget import Webdataget
+from emguiauto import Guidataget
 import openpyxl 
 
 #################################################################
 # メイン
 #################################################################
 if __name__ == "__main__":    
-    # 基本情報取得
+    
+    print('ファイル取得開始：',datetime.datetime.now())   
                 
     #データベース操作クラス初期化及び共通パラメータyamlファイルから取得
     resdb = DataBaseClass() 
@@ -133,4 +135,9 @@ if __name__ == "__main__":
         #i += 1
     
     del resdb
-    #print('ファイル取得終了：',datetime.datetime.now())            
+
+    # かぞえもんデータ取得class初期化
+    resgui = Guidataget('0000004')
+    # かぞえもんデータ自動取得
+    res = resgui.guiauto()
+    print('ファイル取得終了：',datetime.datetime.now())            
