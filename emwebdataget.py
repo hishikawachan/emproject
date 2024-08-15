@@ -16,6 +16,7 @@
 # ======================================
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import ElementNotInteractableException
 import time
 from datetime import datetime
 import datetime
@@ -127,10 +128,22 @@ class Webdataget:
         time.sleep(20)
 
         #検索したデータをダウンロードフォルダに保存
+        # 検索データがなかった場合を追加
         #element = driver.find_element(By.XPATH,'//*[@id="app"]/div/main/div/div[2]/div/div/div[1]/div[3]/div/div/div[2]/button')
-        element = driver.find_element(By.XPATH,self.download_btn)
-        element.click()
-        time.sleep(10)
+        try:
+            element = driver.find_element(By.XPATH,self.download_btn)
+            element.click()
+            time.sleep(10)
+        except: 
+            ElementNotInteractableException
+            #print('検索データ無し')
+            return -1
+        # if element is True:
+        #     element = driver.find_element(By.XPATH,self.download_btn)
+        #     element.click()
+        #     time.sleep(10)   
+        # else:
+        #     return
 
         # 集計範囲の集計金額を取得する
         #インカム情報メニューを開く

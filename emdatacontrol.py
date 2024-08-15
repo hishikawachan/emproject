@@ -112,20 +112,23 @@ if __name__ == "__main__":
                 # 売上明細データ自動取得 売上合計金額を返す
                 total = reswdg.dataget()
                 # ダウンロードしたファイルを規定のフォルダーに移す
-                input_filepath = os.path.join(web_data[1],web_data[2])
-                output_filepath = os.path.join(web_data[0],ret_rows[i][10])
-                new_path = shutil.copy(input_filepath,output_filepath) 
-                os.remove(input_filepath) 
-                # 売上集計チェックリストに合計金額(int化)をセット
-                wb = openpyxl.load_workbook(f'{check_list}')
-                sh = wb.worksheets[0]
-                for x in range(4,int(mrow)):
-                     if sh.cell(x,1).value == ret_rows[i][0]: #会社コード一致
-                          sh.cell(x,mcol+1).value = int(total.replace(',', ''))
-                          #sh.cell(x,5).value = total
-                          break
-                # 集計チェックリスト閉じる
-                wb.save(f'{check_list}')
+                if total != -1:
+                    input_filepath = os.path.join(web_data[1],web_data[2])
+                    output_filepath = os.path.join(web_data[0],ret_rows[i][10])
+                    new_path = shutil.copy(input_filepath,output_filepath) 
+                    os.remove(input_filepath) 
+                    # 売上集計チェックリストに合計金額(int化)をセット
+                    wb = openpyxl.load_workbook(f'{check_list}')
+                    sh = wb.worksheets[0]
+                    for x in range(4,int(mrow)):
+                        if sh.cell(x,1).value == ret_rows[i][0]: #会社コード一致
+                            sh.cell(x,mcol+1).value = int(total.replace(',', ''))
+                            #sh.cell(x,5).value = total
+                            break
+                    # 集計チェックリスト閉じる
+                    wb.save(f'{check_list}')
+                else:
+                    print('検索対象データ無し',ret_rows[i][1])
 
         #i += 1
     
