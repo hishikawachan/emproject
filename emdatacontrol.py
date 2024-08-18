@@ -28,19 +28,19 @@ import openpyxl
 
 #################################################################
 # メイン
-#################################################################
+#########################################KW708kiwa########################
 if __name__ == "__main__":    
     
-    print('ファイル取得開始：',datetime.datetime.now())   
+    print('ファイル取得開始：',datetime.datetime.now())  
                 
-    #データベース操作クラス初期化及び共通パラメータyamlファイルから取得
+    #データベース操作クラス初期化及び共通パラメータyamlファイルから取得2024815
     resdb = DataBaseClass() 
     
     #会社データ全件取得
     ret_rows = resdb.company_data_allget()
     
     # 共通パラメータ初期化
-    web_data = []
+    web_data = [] #TOAMAS
 
     # web操作用yamlファイルから共通データ取得
     with open('C:/em/emproject/emoneyweb.yaml','r+',encoding="utf-8") as ry:
@@ -137,7 +137,7 @@ if __name__ == "__main__":
     del resdb
 
     # かぞえもんデータ取得class初期化
-    resgui = Guidataget('0000004')
+    resgui = Guidataget()
     # かぞえもんデータ自動取得
     res = resgui.guiauto()
-    print('ファイル取得終了：',datetime.datetime.now())            
+    print('ファイル取得終了：',datetime.datetime.now())        
