@@ -41,7 +41,7 @@ if __name__ == "__main__":
     # 基本情報取得
                 
     #データベース操作クラス初期化及び共通パラメータyamlファイルから取得
-    resdb = DataBaseClass() 
+    resdb = DataBaseClass('1') 
     
     #会社データ全件取得
     ret_rows = resdb.company_data_allget()

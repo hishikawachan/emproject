@@ -24,7 +24,7 @@ import yaml
 import csv
 import jpholiday
 import subprocess
-import pandas as pd
+import pandas as pd 
 from emdbaccess import dbAccessor
 #import emoneyweather as ew
 import emweather as ew
@@ -42,7 +42,7 @@ class DataBaseClass:
     # [5]:帳票ファイル出力先ディレクトリ
     #
     #####################################
-    def __init__(self):
+    def __init__(self, flg):
         # 基本情報取得
         #with open('C:/emoney/emoney.yaml','r+',encoding="utf-8") as ry:
         #with open('C:/Users/user/OneDrive/Workplace/emoney/emoney.yaml','r+',encoding="utf-8") as ry:
@@ -57,9 +57,10 @@ class DataBaseClass:
             
         # DB接続
         self.cur = dbAccessor(self.dbname,  self.dbport, self.dbip, self.dbuser, self.dbpw)
-        # DBバックアップ  
-        print('データベースバックアップ(処理前)開始')          
-        res = self.database_backup('1')    
+        # DBバックアップ         
+        if flg == '1':
+            print('データベースバックアップ(処理前)開始') 
+            res = self.database_backup()    
     #####################################
     # テーブル名一覧を取得
     #####################################

@@ -34,7 +34,7 @@ if __name__ == "__main__":
     print('ファイル取得開始：',datetime.datetime.now())  
                 
     #データベース操作クラス初期化及び共通パラメータyamlファイルから取得2024815
-    resdb = DataBaseClass() 
+    resdb = DataBaseClass('0') 
     
     #会社データ全件取得
     ret_rows = resdb.company_data_allget()
@@ -139,5 +139,6 @@ if __name__ == "__main__":
     # かぞえもんデータ取得class初期化
     resgui = Guidataget()
     # かぞえもんデータ自動取得
-    res = resgui.guiauto()
-    print('ファイル取得終了：',datetime.datetime.now())        
+    if resgui != '99':
+        res = resgui.guiauto()
+        print('ファイル取得終了：',datetime.datetime.now())        

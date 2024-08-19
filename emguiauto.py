@@ -19,13 +19,11 @@
 import pyautogui as pag
 import pygetwindow as pgw
 import subprocess as sub
-from emdbclass import DataBaseClass
 import yaml
 import time
 
 class Guidataget:
-    def __init__(self):
-        
+    def __init__(self):        
         with open('C:/em/emproject/emoneyweb.yaml','r+',encoding="utf-8") as ry:
             config_yaml = yaml.safe_load(ry)
             self.idx = config_yaml['adress'][0]['x'] #担当者ID
@@ -70,8 +68,8 @@ class Guidataget:
         self.end_year = input('検索終了年を入力(yyyy)') 
         self.end_month = input('検索終了月を入力(mm)') 
         self.end_day = input('検索終了日を入力(dd)') 
-        self.waittime = input('プログラム終了待機時間を入力(ss)※週:20 月:80') 
-        
+        self.waittime = input('プログラム終了待機時間を入力(ss)※週:20 月:80 処理終了:99 >>') 
+        return self.waittime
     ##########################################
     #
     # かぞえもん 自動起動～ログイン～対象データ取得
