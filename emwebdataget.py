@@ -2,7 +2,7 @@
 # ======================================
 # 
 # 電子マネー管理システム
-# 処理データWebから自動取得操作class　
+# TOAMASからデータ自動取得操作class　
 # [環境]
 #   Python 3.10.3
 #   VSCode 1.64
@@ -19,7 +19,6 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import ElementNotInteractableException
 import time
 from datetime import datetime
-import datetime
 
 class Webdataget:
     def __init__(self,web_data,company_data):

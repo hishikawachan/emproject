@@ -5,7 +5,7 @@ from emdbclass import DataBaseClass
 import emweather as ew
 
 #データベース操作クラス初期化
-resdb = DataBaseClass() 
+resdb = DataBaseClass('1') 
 
 ret_tuple = []
 ret_rows = []

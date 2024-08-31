@@ -31,7 +31,6 @@ def str2float(weather_data):
         return 0
 
 def scraping(url,year,month,prec,block):
-
     # 気象データのページを取得
     html = urllib.request.urlopen(url).read()
     soup = BeautifulSoup(html,features='lxml')

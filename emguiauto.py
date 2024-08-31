@@ -69,7 +69,7 @@ class Guidataget:
         self.end_month = input('検索終了月を入力(mm)') 
         self.end_day = input('検索終了日を入力(dd)') 
         self.waittime = input('プログラム終了待機時間を入力(ss)※週:20 月:80 処理終了:99 >>') 
-        return self.waittime
+        # return self.waittime
     ##########################################
     #
     # かぞえもん 自動起動～ログイン～対象データ取得

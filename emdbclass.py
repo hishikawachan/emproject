@@ -26,7 +26,6 @@ import jpholiday
 import subprocess
 import pandas as pd 
 from emdbaccess import dbAccessor
-#import emoneyweather as ew
 import emweather as ew
 
 class DataBaseClass:
@@ -60,7 +59,7 @@ class DataBaseClass:
         # DBバックアップ         
         if flg == '1':
             print('データベースバックアップ(処理前)開始') 
-            res = self.database_backup()    
+            res = self.database_backup(flg)    
     #####################################
     # テーブル名一覧を取得
     #####################################
