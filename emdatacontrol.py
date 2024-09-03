@@ -23,7 +23,7 @@ import yaml
 from emdbclass import DataBaseClass
 import shutil
 from emwebdataget import Webdataget
-from emguiauto import Guidataget
+#from emguiauto import Guidataget
 import openpyxl 
 
 #################################################################
@@ -137,8 +137,8 @@ if __name__ == "__main__":
     del resdb
 
     # かぞえもんデータ取得class初期化
-    resgui = Guidataget()
+    #resgui = Guidataget()
     # かぞえもんデータ自動取得
-    if resgui != '99':
-        res = resgui.guiauto()
-        print('ファイル取得終了：',datetime.datetime.now())        
+    # if resgui != '99':
+    #     res = resgui.guiauto()
+    #     print('ファイル取得終了：',datetime.datetime.now())        
