@@ -22,7 +22,7 @@ import xlrd
 #################################
 def estselect(file_path, ext):
     # データをworkに書き出し
-    wbw = openpyxl.load_workbook(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\wk_book.xlsx')
+    wbw = openpyxl.load_workbook(r'C:\Users\hishi\OneDrive\Workplace\2024年営業計画\wk_book.xlsx')
     shw = wbw['Sheet1']
     rowno = shw.max_row + 1
     #colno = sh_jyutyu.max_column + 1
@@ -130,7 +130,7 @@ def estselect(file_path, ext):
     
     
     #書き込んだデータを保存
-    wbw.save(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\wk_book.xlsx')
+    wbw.save(r'C:\Users\hishi\OneDrive\Workplace\2024年営業計画\wk_book.xlsx')
     return 0
 
 #################################
@@ -138,15 +138,15 @@ def estselect(file_path, ext):
 #################################
 if __name__ == "__main__":
     outcount = 0
-    file_dir = r'C:\Users\user\OneDrive\Workplace\2024年営業計画\売上予想データ'
+    file_dir = r'C:\Users\hishi\OneDrive\Workplace\2024年営業計画\売上予想データ'
 
     print('処理開始')
 
     #ワークシートを事前にクリアする
-    wbw = openpyxl.load_workbook(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\wk_book.xlsx')
+    wbw = openpyxl.load_workbook(r'C:\Users\hishi\OneDrive\Workplace\2024年営業計画\wk_book.xlsx')
     wbw.remove(wbw.worksheets[-1])
     wsw = wbw.create_sheet(title="Sheet1")
-    wbw.save(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\wk_book.xlsx')  
+    wbw.save(r'C:\Users\hishi\OneDrive\Workplace\2024年営業計画\wk_book.xlsx')  
     # 見積ファイルごとの処理
     for file in os.listdir(file_dir):
         base, ext = os.path.splitext(file)
