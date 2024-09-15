@@ -745,32 +745,32 @@ class DataBaseClass:
     # データベースバックアップ
     ##############################################################
     def database_backup(self,flg):
-
-        write_to_file: bool = True
-        file_name:str = 'embackup.sql'
-        
-        dt_now = datetime.datetime.now()
-        
-        dump_command = [
-        'mysqldump',
-        '--host=' + self.dbip,
-        '--user=' + self.dbuser,
-        '--password=' + self.dbpw,
-        '--all-databases'
-        ]
-        #バックアップ実行
-        dump_process = subprocess.Popen(dump_command, stdout=subprocess.PIPE,shell=True)
-        #結果をsqlとして出力
-        if write_to_file:
-            dump_result = dump_process.communicate()[0]
-            str_date = str(dt_now.month) + str(dt_now.day) + str(dt_now.hour) +  str(dt_now.minute)
-            if flg == '1':
-                file_name2 = str_date + '_' + 'before' + '_' + file_name 
-            else:
-                file_name2 = str_date + '_' + 'after'  + '_' + file_name 
-            out_file_path = os.path.join(self.outpath,file_name2)    
-            with open(out_file_path, 'wb') as fp:
-                fp.write(dump_result) 
+        if flg == '1':
+            write_to_file: bool = True
+            file_name:str = 'embackup.sql'
+            
+            dt_now = datetime.datetime.now()
+            
+            dump_command = [
+            'mysqldump',
+            '--host=' + self.dbip,
+            '--user=' + self.dbuser,
+            '--password=' + self.dbpw,
+            '--all-databases'
+            ]
+            #バックアップ実行
+            dump_process = subprocess.Popen(dump_command, stdout=subprocess.PIPE,shell=True)
+            #結果をsqlとして出力
+            if write_to_file:
+                dump_result = dump_process.communicate()[0]
+                str_date = str(dt_now.month) + str(dt_now.day) + str(dt_now.hour) +  str(dt_now.minute)
+                if flg == '1':
+                    file_name2 = str_date + '_' + 'before' + '_' + file_name 
+                else:
+                    file_name2 = str_date + '_' + 'after'  + '_' + file_name 
+                out_file_path = os.path.join(self.outpath,file_name2)    
+                with open(out_file_path, 'wb') as fp:
+                    fp.write(dump_result) 
         
         return 0    
     ###############################################################
@@ -780,5 +780,5 @@ class DataBaseClass:
         #print('ディストラクタ呼び出し') 
         # DBバックアップ 
         print('データベースバックアップ(処理後)開始')       
-        res = self.database_backup('2')       
+        res = self.database_backup('0')       
                
