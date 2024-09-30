@@ -29,7 +29,7 @@ wb.save(r'C:\Users\hishi\OneDrive\Workplace\2024年営業計画\wk_nouhin.xlsx')
 
 con_str1 = (
 	r'Driver={Microsoft Access Driver (*.mdb, *.accdb)};'
-	r'DBQ=C:\Users\hishi\OneDrive\Workplace\2024年営業計画\2024-08月納品データ\納品書Ver.1.2元データ用(2024版 税率10% 西暦表示).mdb;'
+	r'DBQ=C:\Users\hishi\OneDrive\Workplace\2024年営業計画\2024-09月納品データ\納品書Ver.1.2元データ用(2024版 税率10% 西暦表示).mdb;'
 	)
 
 con = pyo.connect(con_str1)
@@ -40,7 +40,7 @@ cursor = con.cursor()
 # ###################################
 sql1 = 'SELECT * FROM 納品書 \
         LEFT JOIN ゴルフ場名簿 ON(納品書.ゴルフ場No = ゴルフ場名簿.ゴルフ場No) \
-        WHERE 納品日 Between #2024/08/01# AND #2024/08/31#'
+        WHERE 納品日 Between #2024/09/01# AND #2024/09/30#'
 #sql1 = 'SELECT * FROM 納品書 \
 #        LEFT JOIN ゴルフ場名簿 ON(納品書.ゴルフ場No = ゴルフ場名簿.ゴルフ場No) \
 #        WHERE 納品No > 6589'
