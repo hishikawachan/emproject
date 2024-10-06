@@ -779,6 +779,6 @@ class DataBaseClass:
     def __del__(self):
         #print('ディストラクタ呼び出し') 
         # DBバックアップ 
-        print('データベースバックアップ(処理後)開始')       
+        #print('データベースバックアップ(処理後)開始')       
         res = self.database_backup('0')       
                

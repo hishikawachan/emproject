@@ -230,6 +230,7 @@ if __name__ == "__main__":
             #res_row = resdb.company_updateday_update(companycd)
                             
         i += 1
-    
+    print('データベースバックアップ(処理語)：',datetime.datetime.now())  
+    res = resdb.database_backup('1')
     del resdb
     print('処理終了：',datetime.datetime.now())            
