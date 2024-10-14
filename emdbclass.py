@@ -57,7 +57,7 @@ class DataBaseClass:
         # DB接続
         self.cur = dbAccessor(self.dbname,  self.dbport, self.dbip, self.dbuser, self.dbpw)
         # DBバックアップ         
-        if flg == '1':
+        if flg == '1' or '2':
             print('データベースバックアップ(処理前)開始') 
             res = self.database_backup(flg)    
     #####################################
@@ -765,8 +765,10 @@ class DataBaseClass:
                 dump_result = dump_process.communicate()[0]
                 str_date = str(dt_now.month) + str(dt_now.day) + str(dt_now.hour) +  str(dt_now.minute)
                 if flg == '1':
+                    print('データベースバックアップ(処理前)：',datetime.datetime.now())  
                     file_name2 = str_date + '_' + 'before' + '_' + file_name 
                 else:
+                    print('データベースバックアップ(処理後)：',datetime.datetime.now())  
                     file_name2 = str_date + '_' + 'after'  + '_' + file_name 
                 out_file_path = os.path.join(self.outpath,file_name2)    
                 with open(out_file_path, 'wb') as fp:
