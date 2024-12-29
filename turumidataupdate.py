@@ -1,5 +1,6 @@
 
 import csv
+import os
 import datetime
 from datetime import datetime as dt
 output_cnt = 0
@@ -8,13 +9,16 @@ chg_cnt = 0
 chg1_cnt = 0
 chg5_cnt = 0
 output_data = []
-input_filepath = r'C:\Users\hishi\OneDrive\Workplace\emoney\incomes_0000001.csv'
-output_filepath = r'C:\Users\hishi\OneDrive\Workplace\emoney\incomes_0000001_out.csv'
+input_filepath1 = r'D:\Workspace\emoney\incomes_0000001.csv'
+input_filepath2 = r'D:\Workspace\emoney\incomes_0000001_org.csv'
+output_filepath = r'D:\Workspace\emoney\incomes_0000001.csv'
 code1 = '0000001-5'
 code2 = '0000001-1'
 com1_date = datetime.datetime(2024, 8, 30, 14, 1, 29)
 
-with open(input_filepath, encoding = 'UTF-8-sig') as fin:
+os.rename(input_filepath1, input_filepath2) 
+
+with open(input_filepath2, encoding = 'UTF-8-sig') as fin:
     reader = csv.reader(fin)
     for row in reader :
         input_data = []

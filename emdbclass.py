@@ -57,11 +57,11 @@ class DataBaseClass:
         # DB接続
         self.cur = dbAccessor(self.dbname,  self.dbport, self.dbip, self.dbuser, self.dbpw)
         # DBバックアップ         
-        if flg == '1' or '2':
-            print('データベースバックアップ(処理前)開始') 
+        if flg == '1' or flg == '2':
+            #print('データベースバックアップ(処理前)開始') 
             res = self.database_backup(flg)    
     #####################################
-    # テーブル名一覧を取得
+    # ファイル出力先パスを取得
     #####################################
     def init_return(self):
         parm_list = []
@@ -441,7 +441,10 @@ class DataBaseClass:
         out_err = 0
         in_count = 0
         out_count = 0
-        sum_price = 0        
+        sum_price = 0
+        #ニューツルミゴルフ練習場　端末入替の為の特殊処理用カウンター 2
+        cnt_125 = 0
+        cnt_251 = 0        
     
         with open(input_filepath, encoding = 'UTF-8') as f:
             reader = csv.reader(f)
@@ -479,9 +482,22 @@ class DataBaseClass:
                             data_list.append(int(row[15])) #決済番号
                             
                             #設置場所資産番号から設置場所番号を検索
+                            #ニューツルミゴルフ練習場端末入替の為の特殊処理 start
                             ret_rows = self.set_placecd(row[8])
-                            data_list.append(ret_rows[0][0])      
-                            
+                            if companyid == '0000001':
+                                if ret_rows[0][0] == 1:
+                                    data_list.append(25) 
+                                    cnt_125 += 1
+                                else:
+                                    if ret_rows[0][0] == 25:
+                                        data_list.append(1) 
+                                        cnt_251 += 1
+                                    else:
+                                        data_list.append(ret_rows[0][0])   
+                            else:
+                                data_list.append(ret_rows[0][0])      
+                            #ニューツルミゴルフ練習場端末入替の為の特殊処理 end
+
                             #明細区分番号
                             if row[2] == '現金':
                                 data_list.append('1') 
@@ -558,6 +574,8 @@ class DataBaseClass:
                 print('出力件数',out_count)
                 print('入力不可件数',out_err)
                 print('合計金額',sum_price)
+                print('ニューツルミゴルフ練習場 1  →  25',cnt_125)
+                print('ニューツルミゴルフ練習場 25  →  1',cnt_251)
             
             #return edit_status,out_count,db_updatedate  
             return edit_status,out_count
@@ -696,6 +714,41 @@ class DataBaseClass:
         df_paylog['placesisancode'] = df_paylog['placesisancode'].str.strip()
         
         return df_paylog    
+    ##############################################################
+    # 条件に合う取引明細データの決済金額を設置場所毎に集計して返す
+    # 2024.10.27追加
+    ###############################################################
+    def paylog_get_date(self,COCODE,sdate,edate): 
+        # 対象設置場所取得
+        sql_place = f"""  
+                            SELECT placecode
+                            FROM tbplace 
+                            where placecocode = {COCODE}
+                    """ 
+        
+        ret_place = self.cur.excecuteQuery(sql_place)
+        #print('抽出された設置場所コード',ret_place)
+        s_date = sdate.year * 10000 +  sdate.month * 100 + sdate.day
+        e_date = edate.year * 10000 +  edate.month * 100 + edate.day
+        # 対象設置場所を配列に保管
+        ret_place2 = []
+        for i in ret_place:
+            ret_place2.append(int(i[0]))
+            
+        p_array = tuple(ret_place2)
+        stmt = ','.join(['%s'] * len(ret_place2))
+        sql_place2 = f"""
+                            SELECT tbplace.placename, sum(tbpaylog.payprice)
+                            FROM tbpaylog as a
+                            inner join tbplace as c
+                                 on (a.payplacecd = c.placecode)
+                            WHERE paydatedec >= '{s_date}'
+                            AND paydatedec <= '{e_date}'
+                            AND payplacecd IN({stmt})   
+                            group by tbplace.placename;                         
+                    """ %p_array        
+        
+        ret_rows = self.cur.excecuteQuery(sql_place2)
     ###############################################################
     # 月別レポート用取引明細データをDataFrameで返す    # 
     ###############################################################  
@@ -745,7 +798,7 @@ class DataBaseClass:
     # データベースバックアップ
     ##############################################################
     def database_backup(self,flg):
-        if flg == '1':
+        if flg == '1' or flg == '2':
             write_to_file: bool = True
             file_name:str = 'embackup.sql'
             
@@ -768,11 +821,13 @@ class DataBaseClass:
                     print('データベースバックアップ(処理前)：',datetime.datetime.now())  
                     file_name2 = str_date + '_' + 'before' + '_' + file_name 
                 else:
-                    print('データベースバックアップ(処理後)：',datetime.datetime.now())  
-                    file_name2 = str_date + '_' + 'after'  + '_' + file_name 
-                out_file_path = os.path.join(self.outpath,file_name2)    
-                with open(out_file_path, 'wb') as fp:
-                    fp.write(dump_result) 
+                    if flg == '2':
+                        print('データベースバックアップ(処理後)：',datetime.datetime.now())  
+                        file_name2 = str_date + '_' + 'after'  + '_' + file_name 
+                if flg == '1' or flg == '2':
+                    out_file_path = os.path.join(self.outpath,file_name2)    
+                    with open(out_file_path, 'wb') as fp:
+                        fp.write(dump_result) 
         
         return 0    
     ###############################################################

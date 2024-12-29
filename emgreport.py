@@ -11,6 +11,10 @@
 # [更新履歴]
 #
 #########################################
+import tkinter as tk
+from tkinter import ttk
+import tkinter.filedialog as filedialog
+from emgpublib import Publiclib
 from emmonthsyubetu import dbMonthsyubetu
 from emmonthkinsyu import dbMonthkinsyu
 from emjikanreport import dbJikanReport
@@ -23,21 +27,36 @@ from emdbclass import DataBaseClass
 from datetime import datetime
 import datetime
 import os
+import shutil 
 
 #################################################################
 # メイン
 #################################################################
-class Reportcontrol:
-    def __init__(self, company_id, start_date, end_date):
+class Reportcontrol(object):
+    def __init__(self, root_111, company_id, start_date, end_date):
+        self.root_111 = root_111
         self.companycd_id = company_id
         self.start_date = start_date
-        self.end_date = end_date    
+        self.end_date = end_date
 
+        # レポート出力の設定
+        # yamlファイルから共通データ取得
+        repub = Publiclib()
+        parms = repub.load_yaml()
+        self.root_111.title(parms[8]) 
+        self.root_111.geometry(parms[9]) 
+        self.root_111.resizable(0, 0)
+
+        # メッセージ領域
+        self.label_111 = tk.Label(self.root_111, text="売上管理レポート出力中です")
+        self.label_111.place(x=230, y=120)
+        self.root_111.update()
+
+    def report_init_proc(self):
         print('レポート出力処理開始：',datetime.datetime.now()) 
     
         # 基本情報取得                
-        #データベース操作クラス初期化及び共通パラメータyamlファイルから取得
-        self.resdb = DataBaseClass('1') 
+        self.resdb = DataBaseClass('0') 
     
         #対象会社データ取得
         ret_rows = self.resdb.company_data_get(self.companycd_id)
@@ -54,11 +73,10 @@ class Reportcontrol:
         parm_data = self.resdb.init_return()
         self.dir_date = str(self.companycd_id) + '_'+str(self.SYEAR)+str(self.SMONTH)+str(self.SDAY)+'_'+str(self.EYEAR)+str(self.EMONTH)+str(self.EDAY)
         self.dir_out_filepath = os.path.join(parm_data[0], self.companycd_id, self.dir_date)     
-        # ディレクトリー存在チェック
+        # ディレクトリー存在チェック、作成
         if os.path.exists(self.dir_out_filepath):
-            pass
-        else:
-            os.mkdir(self.dir_out_filepath) 
+            shutil.rmtree(self.dir_out_filepath)  
+        os.mkdir(self.dir_out_filepath) 
         #出力Excelファイル名＋フォルダー設定      
         self.excel_file =  str(self.companycd_id) + '_'+str(self.SYEAR)+str(self.SMONTH)+str(self.SDAY)+'_'+str(self.EYEAR)+str(self.EMONTH)+str(self.EDAY)+'.xlsx'
         self.file_out_path = os.path.join(self.dir_out_filepath, self.excel_file)
@@ -82,91 +100,102 @@ class Reportcontrol:
         #共通：売上履歴データ取得
         df_paylog = self.resdb.paylog_get(self.companycd_id, self.start_date, self.end_date)
         df_sum_paylog = self.resdb.paylog_sum_get(self.companycd_id, self.end_date)
-        
-        #決済種別別売上集計
-        print('決済種別別売上集計処理開始      :',datetime.datetime.now())
-        df_syubetu = self.resdb.syubetsu_get()
-        ressyubetu = dbSyubetuReport(df_syubetu, df_paylog, self.file_out_path, self.sdtime, self.edtime)
-        ret_syubetu = ressyubetu.print_syubetsu()
-        del ressyubetu
-        
-        #設置場所別売上集計
-        print('設置場所別売上集計処理開始      :',datetime.datetime.now())
-        # 現金分
-        df_paylog1 = df_paylog[df_paylog['paykbncd'] == '1']
-        if len(df_paylog1) > 0:
-            resplace = dbPlaceReport(df_paylog, self.file_out_path, '1', self.sdtime, self.edtime)
-            ret_place = resplace.print_place()
-            del resplace
-        # 電子決済分
-        df_paylog2 = df_paylog[df_paylog['paykbncd'] == '2']
-        if len(df_paylog2) > 0:
-            resplace = dbPlaceReport(df_paylog, self.file_out_path, '2', self.sdtime, self.edtime)
-            ret_place = resplace.print_place()
-            del resplace
-        
-        #金種別売上集計
-        print('金種別売上集計処理開始      :',datetime.datetime.now())
-        # 現金分
-        df_paylog1 = df_paylog[df_paylog['paykbncd'] == '1']
-        if len(df_paylog1) > 0:
-            reskinsyu = dbKinsyuReport(df_paylog, self.file_out_path, '1', self.sdtime, self.edtime)
-            ret_kinsyu = reskinsyu.print_kinsyu()
-            del reskinsyu
-        # 電子決済分
-        df_paylog2 = df_paylog[df_paylog['paykbncd'] == '2']
-        if len(df_paylog2) > 0:
-            reskinsyu = dbKinsyuReport(df_paylog, self.file_out_path, '2', self.sdtime, self.edtime)
-            ret_kinsyu = reskinsyu.print_kinsyu()
-            del reskinsyu
-        
-        #時間別売上集計
-        print('時間別売上集計処理開始      :',datetime.datetime.now())
-        # 現金分
-        df_paylog1 = df_paylog[df_paylog['paykbncd'] == '1']
-        if len(df_paylog1) > 0:
-            resjikan = dbJikanReport(df_paylog, self.file_out_path, '1', self.sdtime, self.edtime, self.ret_weather)
-            ret_jikan = resjikan.print_jikan()
-            del resjikan
-        # 電子決済分
-        df_paylog2 = df_paylog[df_paylog['paykbncd'] == '2']
-        if len(df_paylog2) > 0:
-            resjikan = dbJikanReport(df_paylog, self.file_out_path, '2', self.sdtime, self.edtime, self.ret_weather)
-            ret_jikan = resjikan.print_jikan()
-            del resjikan
-        
-        #月別決済種別売上集計
-        print('月別決済種別売上集計処理開始      :',datetime.datetime.now())        
-        # 電子決済分
-        resmonth = dbMonthsyubetu(df_syubetu, df_sum_paylog, self.file_out_path, '2', self.sdtime, self.edtime)
-        ret_month = resmonth.print_monthly()
-        del resmonth
-        
-        #月別金種別売上集計
-        print('月別金種別売上集計処理開始      :',datetime.datetime.now())
-        # 現金分
-        df_sum_paylog1 = df_sum_paylog[df_sum_paylog['paykbncd'] == '1']
-        if len(df_paylog1) > 0:
-            resprice = dbMonthkinsyu(df_sum_paylog, self.file_out_path, '1', self.sdtime, self.edtime)
-            ret_price = resprice.print_pricemonthly()
-            del resprice
-        # 電子決済分
-        df_sum_paylog2 = df_sum_paylog[df_sum_paylog['paykbncd'] == '2']
-        if len(df_paylog2) > 0:
-            resprice = dbMonthkinsyu(df_sum_paylog, self.file_out_path, '2', self.sdtime, self.edtime)
-            ret_price = resprice.print_pricemonthly()
-            del resprice
-        
-        #PDFファイル作成
-        print('PDFファイル作成処理開始      :',datetime.datetime.now())
-        respdf = dbPdfConv(self.file_out_path, self.dir_out_filepath)
-        ret_respdf = respdf.pdfconv()
-        del respdf
-        
-        del self.resdb
 
-        print('レポート出力処理終了：',datetime.datetime.now())   
+        if len( df_paylog ) > 0: #対象データが1件でもあることが前提     
+            #決済種別別売上集計
+            print('決済種別別売上集計処理開始      :',datetime.datetime.now())
+            df_syubetu = self.resdb.syubetsu_get()
+            ressyubetu = dbSyubetuReport(df_syubetu, df_paylog, self.file_out_path, self.sdtime, self.edtime)
+            ret_syubetu = ressyubetu.print_syubetsu()
+            del ressyubetu
+            
+            #設置場所別売上集計
+            print('設置場所別売上集計処理開始      :',datetime.datetime.now())
+            # 現金分
+            df_paylog1 = df_paylog[df_paylog['paykbncd'] == '1']
+            if len(df_paylog1) > 0:
+                resplace = dbPlaceReport(df_paylog, self.file_out_path, '1', self.sdtime, self.edtime)
+                ret_place = resplace.print_place()
+                del resplace
+            # 電子決済分
+            df_paylog2 = df_paylog[df_paylog['paykbncd'] == '2']
+            if len(df_paylog2) > 0:
+                resplace = dbPlaceReport(df_paylog, self.file_out_path, '2', self.sdtime, self.edtime)
+                ret_place = resplace.print_place()
+                del resplace
+            
+            #金種別売上集計
+            print('金種別売上集計処理開始      :',datetime.datetime.now())
+            # 現金分
+            df_paylog1 = df_paylog[df_paylog['paykbncd'] == '1']
+            if len(df_paylog1) > 0:
+                reskinsyu = dbKinsyuReport(df_paylog, self.file_out_path, '1', self.sdtime, self.edtime)
+                ret_kinsyu = reskinsyu.print_kinsyu()
+                del reskinsyu
+            # 電子決済分
+            df_paylog2 = df_paylog[df_paylog['paykbncd'] == '2']
+            if len(df_paylog2) > 0:
+                reskinsyu = dbKinsyuReport(df_paylog, self.file_out_path, '2', self.sdtime, self.edtime)
+                ret_kinsyu = reskinsyu.print_kinsyu()
+                del reskinsyu
+            
+            #時間別売上集計
+            print('時間別売上集計処理開始      :',datetime.datetime.now())
+            # 現金分
+            df_paylog1 = df_paylog[df_paylog['paykbncd'] == '1']
+            if len(df_paylog1) > 0:
+                resjikan = dbJikanReport(df_paylog, self.file_out_path, '1', self.sdtime, self.edtime, self.ret_weather)
+                ret_jikan = resjikan.print_jikan()
+                del resjikan
+            # 電子決済分
+            df_paylog2 = df_paylog[df_paylog['paykbncd'] == '2']
+            if len(df_paylog2) > 0:
+                resjikan = dbJikanReport(df_paylog, self.file_out_path, '2', self.sdtime, self.edtime, self.ret_weather)
+                ret_jikan = resjikan.print_jikan()
+                del resjikan
+            
+            #月別決済種別売上集計
+            print('月別決済種別売上集計処理開始      :',datetime.datetime.now())        
+            # 電子決済分
+            resmonth = dbMonthsyubetu(df_syubetu, df_sum_paylog, self.file_out_path, '2', self.sdtime, self.edtime)
+            ret_month = resmonth.print_monthly()
+            del resmonth
+            
+            #月別金種別売上集計
+            print('月別金種別売上集計処理開始      :',datetime.datetime.now())
+            # 現金分
+            df_sum_paylog1 = df_sum_paylog[df_sum_paylog['paykbncd'] == '1']
+            if len(df_paylog1) > 0:
+                resprice = dbMonthkinsyu(df_sum_paylog, self.file_out_path, '1', self.sdtime, self.edtime)
+                ret_price = resprice.print_pricemonthly()
+                del resprice
+            # 電子決済分
+            df_sum_paylog2 = df_sum_paylog[df_sum_paylog['paykbncd'] == '2']
+            if len(df_paylog2) > 0:
+                resprice = dbMonthkinsyu(df_sum_paylog, self.file_out_path, '2', self.sdtime, self.edtime)
+                ret_price = resprice.print_pricemonthly()
+                del resprice
+            
+            # #PDFファイル作成 　環境条件によってaboteするので使用停止
+            # print('PDFファイル作成処理開始      :',datetime.datetime.now())
+            # respdf = dbPdfConv(self.file_out_path, self.dir_out_filepath)
+            # ret_respdf = respdf.pdfconv()
+            # del respdf
+            
+            del self.resdb
 
+            print('レポート出力処理終了：',datetime.datetime.now())   
+            self.close(self.root_111)
+            return 0
+        else:
+            print('対象データがありません：',datetime.datetime.now())   
+            self.close(self.root_111)
+            return 9
+        
+    # 終了処理
+    def close(self, root):
+        repub = Publiclib()
+        ret = repub.on_return(root)
 
         
                   

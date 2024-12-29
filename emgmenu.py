@@ -12,19 +12,14 @@ from emgdatagetinput import Datagetinput
 
 # メインメニュー表示・選択
 class Menuproc(object):
-    def __init__(self, root_1):
+    def __init__(self, root_1, parms):
         self.root_1 = root_1
+        self.parms = parms
         # メインメニュー画面の設定
         # yamlファイルから共通データ取得
-        repub = Publiclib()
-        parms = repub.load_yaml()
-        self.root_1.title(parms[4]) 
-        self.root_1.geometry(parms[5]) 
+        self.root_1.title(self.parms[4]) 
+        self.root_1.geometry(self.parms[5]) 
         self.root_1.resizable(0, 0)
-        self.id = parms[4]
-        self.password = parms[5]
-
-        del repub
 
         self.var: tk.StringVar = tk.StringVar()
         self.var.set("")
@@ -53,7 +48,7 @@ class Menuproc(object):
         self.button_12.place(x=320, y=160)
 
         self.label_12 = tk.Label(root_1, text="実行する項目を選択し「決定」をクリックしてください")
-        self.label_12.place(x=250, y=200)        
+        self.label_12.place(x=230, y=200)        
     
     # 選択されたボタン番号別処理へ分岐
     def proc_selection(self,event=None):
@@ -61,16 +56,16 @@ class Menuproc(object):
         #self.label_12['text'] = self.selection
         if self.selection == '1b1':
             root_11 = tk.Toplevel()
-            rerep = Reportinput(root_11)
+            rerep = Reportinput(root_11, self.parms)
         if self.selection == '1b2':
             root_12 = tk.Toplevel()
-            recul = Dataculcinput(root_12)
+            recul = Dataculcinput(root_12, self.parms)
         if self.selection == '1b3':
             root_13 = tk.Toplevel()
-            repshw = Datashowinput(root_13)
+            repshw = Datashowinput(root_13,self.parms)
         if self.selection == '1b4':
             root_14 = tk.Toplevel()
-            reget = Datagetinput (root_14)
+            reget = Datagetinput (root_14, self.parms)
     
     # 終了処理
     def close(self, root):

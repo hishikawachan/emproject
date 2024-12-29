@@ -1,10 +1,10 @@
 # ライブラリのインポート
 import tkinter as tk
 from tkinter import ttk
-import yaml
 import tkinter.filedialog as filedialog
 
 from emglogin import Loginproc
+from emgpublib import Publiclib
 
 
     
@@ -29,6 +29,8 @@ from emglogin import Loginproc
  
 if __name__ == "__main__":
     # メインループの実行
+    repub = Publiclib()
+    parms = repub.load_yaml()
     root = tk.Tk()
-    reg = Loginproc(root)
+    reg = Loginproc(root, parms)
     root.mainloop()

@@ -9,31 +9,29 @@ from emgreport import Reportcontrol
 
 # レポート出力画面表示
 class Reportinput(object):
-    def __init__(self, root_11):
+    def __init__(self, root_11, parms):
         self.root_11 = root_11
-       
+        self.parms = parms
         # レポート出力の設定
-         # yamlファイルから共通データ取得
-        repub = Publiclib()
-        parms = repub.load_yaml()
-        self.root_11.title(parms[6]) 
-        self.root_11.geometry(parms[7]) 
+        # yamlファイルから共通データ取得
+        self.root_11.title(self.parms[6]) 
+        self.root_11.geometry(self.parms[7]) 
         self.root_11.resizable(0, 0)
-        self.id = parms[2]
-        self.password = parms[3]
+        self.id = self.parms[2]
+        self.password = self.parms[3]
         
         # ウィジェットの配置や、イベント処理などを記述
         # 対象開始日
-        self.label_11 = tk.Label(self.root_11, text="対象日付(FROM)")
+        self.label_11 = tk.Label(self.root_11, text="対象日付(FROM: yyyymmdd)")
         self.label_11.place(x=20, y=20)
         self.entry_11 = tk.Entry(self.root_11, width=15, font=("Arial", 10))
-        self.entry_11.place(x=100, y=20)
+        self.entry_11.place(x=180, y=20)
 
         # 対象終了日
-        self.label_12 = tk.Label(self.root_11, text="対象日付(TO)")
+        self.label_12 = tk.Label(self.root_11, text="対象日付(TO: yyyymmdd)")
         self.label_12.place(x=20, y=50)
         self.entry_12 = tk.Entry(self.root_11, width=15, font=("Arial", 10))
-        self.entry_12.place(x=100, y=50)
+        self.entry_12.place(x=180, y=50)
 
         # 実行ボタン
         self.button_11 = tk.Button(self.root_11, text="実行", command=lambda: self.date_check(self.entry_11.get(), self.entry_12.get()))
@@ -44,7 +42,7 @@ class Reportinput(object):
         self.button_12.place(x=230, y=80)
 
         # メッセージ領域
-        self.label_12 = tk.Label(self.root_11, text="")
+        self.label_12 = tk.Label(self.root_11, text="レポートの出力期間を指定してください(From <= To)")
         self.label_12.place(x=230, y=120)
     
     # 処理入力日付チェック及び出力実行
@@ -60,8 +58,11 @@ class Reportinput(object):
                     del repub
                     self.label_12['text'] = "指定されたレポートを出力中です"
                     time.sleep(2)
-                    reprt = Reportcontrol(self.id, dates[0], dates[1]) 
-                    if reprt:
+                    root_111 = tk.Toplevel()
+                    reprt = Reportcontrol(root_111, self.id, dates[0], dates[1]) 
+                    reout = reprt.report_init_proc()
+                    reout = reprt.report_output()
+                    if reout:
                         self.label_12['text'] = "レポート出力に失敗しました"
                         time.sleep(3)
                         self.close(self.root_11)

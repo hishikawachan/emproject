@@ -20,8 +20,15 @@ class Publiclib:
             parm.append(config['user_id'])
             parm.append(config['user_pass'])
             parm.append(config['menu_title']) 
-            parm.append(config['menu_geometry'])         
+            parm.append(config['menu_geometry'])   
+            parm.append(config['rep_title']) 
+            parm.append(config['rep_geometry'])   
+            parm.append(config['report_title']) 
+            parm.append(config['report_geometry'])   
+            parm.append(config['culcinput_title']) 
+            parm.append(config['culcinput_geometry'])                
         return parm
+    
     # 共通日付(8桁)チェック
     def date_check(self, start_date, end_date):
         # 入力値　数値チェック
@@ -45,9 +52,9 @@ class Publiclib:
         e_day = int(end_date[6:])
         try:
             s_newDataStr="%04d/%02d/%02d"%(s_year,s_month,s_day)
-            s_newDate=datetime.datetime.strptime(s_newDataStr,"%Y/%m/%d")
+            s_newDate=datetime.strptime(s_newDataStr,"%Y/%m/%d")
             e_newDataStr="%04d/%02d/%02d"%(e_year,e_month,e_day)
-            e_newDate=datetime.datetime.strptime(e_newDataStr,"%Y/%m/%d")
+            e_newDate=datetime.strptime(e_newDataStr,"%Y/%m/%d")
             return 0
         except ValueError:
             return 9
@@ -77,6 +84,5 @@ class Publiclib:
         return
     
     # ディストラクタ
-    def __del__(self):
-        
+    def __del__(self):        
         pass     
