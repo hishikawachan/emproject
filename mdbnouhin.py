@@ -16,10 +16,10 @@ import openpyxl
 from datetime import date
 
 #ワークシートを事前にクリアする
-wb = openpyxl.load_workbook(r'C:\Users\hishi\OneDrive\Workplace\2024年営業計画\wk_nouhin.xlsx')
+wb = openpyxl.load_workbook(r'C:\Users\hishi\OneDrive\Workplace\2025年営業計画\wk_nouhin.xlsx')
 wb.remove(wb.worksheets[-1])
 ws = wb.create_sheet(title="Sheet1")
-wb.save(r'C:\Users\hishi\OneDrive\Workplace\2024年営業計画\wk_nouhin.xlsx')
+wb.save(r'C:\Users\hishi\OneDrive\Workplace\2025年営業計画\wk_nouhin.xlsx')
 
 ##########################################
 #
@@ -29,7 +29,7 @@ wb.save(r'C:\Users\hishi\OneDrive\Workplace\2024年営業計画\wk_nouhin.xlsx')
 
 con_str1 = (
 	r'Driver={Microsoft Access Driver (*.mdb, *.accdb)};'
-	r'DBQ=D:\Workspace\納品書Ver.1.2元データ用(2024版 税率10% 西暦表示).mdb;'
+	r'DBQ=D:\Workspace\納品書Ver.1.2元データ用(2025版 税率10% 西暦表示).mdb;'
 	)
 
 con = pyo.connect(con_str1)
@@ -40,7 +40,7 @@ cursor = con.cursor()
 # ###################################
 sql1 = 'SELECT * FROM 納品書 \
         LEFT JOIN ゴルフ場名簿 ON(納品書.ゴルフ場No = ゴルフ場名簿.ゴルフ場No) \
-        WHERE 納品日 Between #2024/12/01# AND #2024/12/31#'
+        WHERE 納品日 Between #2025/01/01# AND #2025/01/31#'
 #sql1 = 'SELECT * FROM 納品書 \
 #        LEFT JOIN ゴルフ場名簿 ON(納品書.ゴルフ場No = ゴルフ場名簿.ゴルフ場No) \
 #        WHERE 納品No > 6589'
@@ -54,7 +54,7 @@ rows_nouhin_len = len(rows_nouhin)
 #  売上実績をワークファイルに書き込み
 ###################################
 #wb = openpyxl.load_workbook(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
-wb = openpyxl.load_workbook(r'C:\Users\hishi\OneDrive\Workplace\2024年営業計画\wk_nouhin.xlsx')
+wb = openpyxl.load_workbook(r'C:\Users\hishi\OneDrive\Workplace\2025年営業計画\wk_nouhin.xlsx')
 sh_nouhin = wb['Sheet1']
 rowno = sh_nouhin.max_row + 1
 start_rowno = rowno
@@ -75,7 +75,7 @@ for data_no in range(0, rows_nouhin_len):
             rowno += 1
             
 #wb.save(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
-wb.save(r'C:\Users\hishi\OneDrive\Workplace\2024年営業計画\wk_nouhin.xlsx')
+wb.save(r'C:\Users\hishi\OneDrive\Workplace\2025年営業計画\wk_nouhin.xlsx')
 
 cursor.close()
 con.close()
