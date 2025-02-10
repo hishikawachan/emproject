@@ -793,7 +793,24 @@ class DataBaseClass:
         df_paylog['placecocode'] = df_paylog['placecocode'].str.strip()
         df_paylog['placesisancode'] = df_paylog['placesisancode'].str.strip() 
         
-        return df_paylog    
+        return df_paylog 
+    ###############################################################
+    # 指定した年月の売上集計値を会社コード毎に集計して返す
+    # 2025.2.10 追加     
+    ###############################################################  
+    def paylog_monthsum_get(self, year,  month):  
+        sql_monthsum = f"""
+                            SELECT co.comcode,co.comname , sum(lg.payprice)
+                            FROM tbpaylog AS lg
+                            INNER JOIN  tbplace AS ps
+                            ON lg.payplacecd = ps.placecode
+                            INNER JOIN  tbcompany AS co
+                            ON ps.placecocode = co.comcode
+                            WHERE lg.payyear = '{year}' AND lg.paymonth = '{month}'
+                            group by co.comcode;
+                        """
+        ret_monthsum = self.cur.excecuteQuery(sql_monthsum)
+        return ret_monthsum
     ##############################################################
     # データベースバックアップ
     ##############################################################
