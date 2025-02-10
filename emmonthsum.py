@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
     #集計年・月の取得
     year = input('対象年を入力してください(数字4桁):') 
-    month = input('対象月を入力してください(数字2桁以内):') 
+    month = input('対象月を入力してください(数字1 ～ 12):') 
 
     # DBから集計値を取得
     res_monthsum = resdb.paylog_monthsum_get(year,month)
