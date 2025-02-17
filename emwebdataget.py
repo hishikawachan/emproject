@@ -92,7 +92,7 @@ class Webdataget:
         #各種メニュー画面に遷移
         #driver.get('https://toamas-amusement.thincacloud.com/')
         driver.get(self.toamas_url2)
-        time.sleep(10)
+        time.sleep(12)
 
         #インカム情報メニューを開く
         #element = driver.find_element(By.XPATH,'//*[@id="app"]/div[1]/header/div/div[3]/span[1]/button[1]/span/i')
