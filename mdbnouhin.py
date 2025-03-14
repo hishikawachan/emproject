@@ -40,7 +40,7 @@ cursor = con.cursor()
 # ###################################
 sql1 = 'SELECT * FROM 納品書 \
         LEFT JOIN ゴルフ場名簿 ON(納品書.ゴルフ場No = ゴルフ場名簿.ゴルフ場No) \
-        WHERE 納品日 Between #2025/01/01# AND #2025/01/31#'
+        WHERE 納品日 Between #2025/02/01# AND #2025/02/28#'
 #sql1 = 'SELECT * FROM 納品書 \
 #        LEFT JOIN ゴルフ場名簿 ON(納品書.ゴルフ場No = ゴルフ場名簿.ゴルフ場No) \
 #        WHERE 納品No > 6589'
