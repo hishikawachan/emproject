@@ -49,6 +49,8 @@ if __name__ == "__main__":
             body1 = config_yaml['body1']
             body2 = config_yaml['body2']
             body3 = config_yaml['body3']
+            body4 = config_yaml['body4']
+            body5 = config_yaml['body5']
             foot1 = config_yaml['foot1']
             foot2 = config_yaml['foot2']
     # mail添付ファイルフォルダ
@@ -102,8 +104,9 @@ if __name__ == "__main__":
             mail.subject = subject_org + '   ' + str(start_date) + '～' + str(end_date) 
             mail.bodyFormat = 1 #テキスト形式
 
-            mailbody1 = com_mailname1 + '\r\n' + com_mailname2 + '\r\n' + com_mailname3 + '\r\n' + '\r\n' + body1 + '\r\n' + body2 + '\r\n' + body3
-            mail.body = mailbody1 + '\r\n' + '\r\n' + foot1 + '\r\n' + foot2
+            mailbody1 = com_mailname1 + '\r\n' + com_mailname2 + '\r\n' + com_mailname3 + '\r\n'
+            mailbody2 = body1 + '\r\n' + body2 + '\r\n' + body3 + '\r\n' + body4 +  '\r\n' + body5 + '\r\n'
+            mail.body = mailbody1 + '\r\n' + mailbody2 + '\r\n' + '\r\n' + foot1 + '\r\n' + foot2
             # 添付ファイル抽出
             attach_dir = os.path.join(file_path, com_code)
             SYEAR = start_date.year

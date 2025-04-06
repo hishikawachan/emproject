@@ -108,7 +108,7 @@ class dbKinsyuReport:
         wps.orientation = sh.ORIENTATION_LANDSCAPE
             
         #sh.cell(row=1, column=2).value='金種別利用回数集計表'
-        sh.cell(row=1, column=2).value='金種別利用金額集計表'
+        sh.cell(row=1, column=2).value='金種別売上集計表'
         sh.cell(row=1, column=3).value=self.sheet_name
             
         str1 = (f'{self.SYEAR} 年 {self.SMONTH} 月 {self.SDAY} 日  ～')
@@ -123,11 +123,11 @@ class dbKinsyuReport:
                 if len(str(cell.value)) > max_length:
                     max_length = len(str(cell.value))        
                 
-            adjusted_width = (max_length + 1) * 1.3   
+            adjusted_width = (max_length + 1) * 1.6   
             sh.column_dimensions[col[0].column_letter].width = adjusted_width
                 
         #部分的にセル幅を修正
-        sh.column_dimensions['B'].width = 25 #売上日
+        sh.column_dimensions['B'].width = 19 #売上日
         #sh.column_dimensions['C'].width = 15 #決済種別
         sh.column_dimensions['C'].width = 15 #決済金額    
         #罫線引く
