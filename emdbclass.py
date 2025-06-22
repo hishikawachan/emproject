@@ -483,19 +483,20 @@ class DataBaseClass:
                             
                             #設置場所資産番号から設置場所番号を検索
                             #ニューツルミゴルフ練習場端末入替の為の特殊処理 start
+                            # 2025/5/14 入替を戻した為、処理を解除
                             ret_rows = self.set_placecd(row[8])
-                            if companyid == '0000001':
-                                if ret_rows[0][0] == 1:
-                                    data_list.append(25) 
-                                    cnt_125 += 1
-                                else:
-                                    if ret_rows[0][0] == 25:
-                                        data_list.append(1) 
-                                        cnt_251 += 1
-                                    else:
-                                        data_list.append(ret_rows[0][0])   
-                            else:
-                                data_list.append(ret_rows[0][0])      
+                            # if companyid == '0000001':
+                            #     if ret_rows[0][0] == 1:
+                            #         data_list.append(25) 
+                            #         cnt_125 += 1
+                            #     else:
+                            #         if ret_rows[0][0] == 25:
+                            #             data_list.append(1) 
+                            #             cnt_251 += 1
+                            #         else:
+                            #             data_list.append(ret_rows[0][0])   
+                            # else:
+                            data_list.append(ret_rows[0][0])      
                             #ニューツルミゴルフ練習場端末入替の為の特殊処理 end
 
                             #明細区分番号
@@ -822,7 +823,8 @@ class DataBaseClass:
             dt_now = datetime.datetime.now()
             
             dump_command = [
-            'mysqldump',
+            # 'mysqldump',
+            'mariadb-dump',
             '--host=' + self.dbip,
             '--user=' + self.dbuser,
             '--password=' + self.dbpw,
