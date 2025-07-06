@@ -24,6 +24,7 @@ import yaml
 import csv
 import jpholiday
 import subprocess
+import shlex
 import pandas as pd 
 from emdbaccess import dbAccessor
 import emweather as ew
@@ -58,8 +59,9 @@ class DataBaseClass:
         self.cur = dbAccessor(self.dbname,  self.dbport, self.dbip, self.dbuser, self.dbpw)
         # DBバックアップ         
         if flg == '1' or flg == '2':
-            #print('データベースバックアップ(処理前)開始') 
+            print('データベースバックアップ(処理前)開始') 
             res = self.database_backup(flg)    
+            print('pending')
     #####################################
     # ファイル出力先パスを取得
     #####################################
@@ -815,7 +817,7 @@ class DataBaseClass:
     ##############################################################
     # データベースバックアップ
     ##############################################################
-    def database_backup(self,flg):
+    """  def database_backup(self,flg):
         if flg == '1' or flg == '2':
             write_to_file: bool = True
             file_name:str = 'embackup.sql'
@@ -848,7 +850,52 @@ class DataBaseClass:
                     with open(out_file_path, 'wb') as fp:
                         fp.write(dump_result) 
         
-        return 0    
+        return 0     """
+
+    def  database_backup(self, flg):
+    #def backup_with_mariabackup(target_dir, user, password, datadir):
+        """
+        mariabackupを使用してMariaDBをバックアップする
+        """
+        # バックアップディレクトリの作成
+        file_name:str = 'embackup.sql'
+        dt_now = datetime.datetime.now()
+        str_date = str(dt_now.month) + str(dt_now.day) + str(dt_now.hour) +  str(dt_now.minute)
+        if flg == '1':
+            print('データベースバックアップ(処理前)：',datetime.datetime.now())  
+            file_name2 = str_date + '_' + 'before'  
+            outpath = os.path.join(self.outpath,file_name2)   
+        
+        else:
+            if flg == '2':
+                print('データベースバックアップ(処理後)：',datetime.datetime.now())  
+                file_name2 = str_date + '_' + 'after'
+                outpath = os.path.join(self.outpath,file_name2)   
+
+        #if flg == '1' or flg == '2':
+        #    out_file_path = os.path.join(self.outpath,file_name2)    
+
+        #os.makedirs(outpath, exist_ok=True)
+        #with open(out_file_path, 'wb') as fp:
+        #    fp.write(out_file_path) 
+        """MariaDBをバックアップする。"""
+        command = [
+        "mariabackup",
+        f"--backup",
+        f"--target-dir={outpath}",
+        f"--user={self.dbuser}",
+        f"--password={self.dbpw}",
+        f"--host={self.dbip}",
+        f"--port={self.dbport}"
+        ]
+       
+        try:
+            subprocess.run(command, check=True, capture_output=True, text=True)
+            print(f"バックアップ成功: {outpath}")
+        except subprocess.CalledProcessError as e:
+            print(f"バックアップ失敗: {e.stderr}")
+
+       
     ###############################################################
     # ディストラクタ
     ###############################################################
