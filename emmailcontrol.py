@@ -22,6 +22,15 @@ import yaml
 import os
 import win32com.client
 from emdbclass import DataBaseClass
+
+#====以下Gmail版用ライブラリ======================
+import smtplib
+#from email.message import EmailMessage
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
+from email.mime.base import MIMEBase
+from email import encoders
 #################################################################
 # 共通パラメータ
 #################################################################
@@ -96,7 +105,7 @@ if __name__ == "__main__":
                 com_mailname3 = '' 
             # Outlookアプリケーションをインスタンス化
             outlook = win32com.client.Dispatch('Outlook.Application')
-            # メールオブジェクトの作成　要素の設定
+            # メールオブジェクトの作成要素の設定
             mail = outlook.CreateItem(0) # 0:メール
             mail.to = com_mailto
             if com_mailcc != None:
@@ -107,6 +116,7 @@ if __name__ == "__main__":
             mailbody1 = com_mailname1 + '\r\n' + com_mailname2 + '\r\n' + com_mailname3 + '\r\n'
             mailbody2 = body1 + '\r\n' + body2 + '\r\n' + body3 + '\r\n' + body4 +  '\r\n' + body5 + '\r\n'
             mail.body = mailbody1 + '\r\n' + mailbody2 + '\r\n' + '\r\n' + foot1 + '\r\n' + foot2
+            
             # 添付ファイル抽出
             attach_dir = os.path.join(file_path, com_code)
             SYEAR = start_date.year
@@ -119,6 +129,12 @@ if __name__ == "__main__":
             attch_file = os.path.join(attach_dir, dir_date) 
             mail.Attachments.Add(attch_file)
 
+            """ #添付ファイルを読み込み
+            with open(attch_file, "rb") as f:
+                file = MIMEApplication(f.read(), _subtype="zip")
+                file.add_header("Content-Disposition", "attachment", filename=os.path.basename(attch_file))
+                mail.attach(file) """
+
             # メールを保存
             # mail.Save()
             #mail.Move(draft_folder)
@@ -127,6 +143,45 @@ if __name__ == "__main__":
             mail.display(True)
             # メール送信
             #mail.Send()
+
+            """ #メールアドレス使用不可に対する暫定措置（gmail使用版）
+            # メールの設定
+            msg = MIMEMultipart()
+            mail_subject = subject_org + '   ' + str(start_date) + '～' + str(end_date) 
+            msg["Subject"] = mail_subject
+            msg["From"] = "ishikawa.kiwa@gmail.com"
+            msg["To"] = ",".join(com_mailto)
+            if com_mailcc != None:
+                msg['Cc'] = ",".join(com_mailcc)
+
+            mailbody1 = com_mailname1 + '\r\n' + com_mailname2 + '\r\n' + com_mailname3 + '\r\n'
+            mailbody2 = body1 + '\r\n' + body2 + '\r\n' + body3 + '\r\n' + body4 +  '\r\n' + body5 + '\r\n'
+            mail_body = mailbody1 + '\r\n' + mailbody2 + '\r\n' + '\r\n' + foot1 + '\r\n' + foot2
+            msg.attach(MIMEText(mail_body, "plain"))
+
+            # 添付ファイル抽出
+            attach_dir = os.path.join(file_path, com_code)
+            SYEAR = start_date.year
+            SMONTH = start_date.month
+            SDAY = start_date.day
+            EYEAR = end_date.year
+            EMONTH = end_date.month
+            EDAY = end_date.day
+            dir_date = str(com_code) + '_'+str(SYEAR)+str(SMONTH)+str(SDAY)+'_'+str(EYEAR)+str(EMONTH)+str(EDAY)+'.zip'
+            attch_file = os.path.join(attach_dir, dir_date) 
+            
+            #添付ファイル読み込み
+            with open(attch_file, "rb") as attachment:
+                part = MIMEBase("application", "zip")
+                part.set_payload(attachment.read())
+                encoders.encode_base64(part)
+                part.add_header('Content-Disposition', f'attachment; filename="{attch_file}"')
+                msg.attach(part)
+
+            # Gmailに接続して送信
+            with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+                smtp.login("ishikawa.kiwa@gmail.com", "njhqdgwqxrpcwlky")
+                smtp.send_message(msg) """
                 
             #対象会社データ更新日の更新
             input_update = input('次回処理日をセットしますか(y or n):') 

@@ -61,7 +61,6 @@ class DataBaseClass:
         if flg == '1' or flg == '2':
             print('データベースバックアップ(処理前)開始') 
             res = self.database_backup(flg)    
-            print('pending')
     #####################################
     # ファイル出力先パスを取得
     #####################################
@@ -433,7 +432,7 @@ class DataBaseClass:
     ###############################################################
     # 対象会社のcsvファイル読込み　TOAMAS及びDB出力
     ############################################################### 
-    def income_output(self,companyid, sdate, edate, f_name):
+    def income_output(self, companyid, sdate, edate, f_name):
         # 入力ファイル名の取得
         file_name = f_name.strip()
         input_filepath = os.path.join(self.outpath,file_name)  
