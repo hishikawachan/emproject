@@ -52,7 +52,7 @@ if __name__ == "__main__":
     ret_rows = resdb.company_data_allget()
 
     # mail操作用yamlファイルから共通データ取得
-    with open('C:/em/emproject/emoneymail.yaml','r+',encoding="utf-8") as rm:
+    with open('c:/em/emproject/emoneymail.yaml','r+',encoding="utf-8") as rm:
             config_yaml = yaml.safe_load(rm)
             subject_org = config_yaml['head']
             body1 = config_yaml['body1']
@@ -63,7 +63,7 @@ if __name__ == "__main__":
             foot1 = config_yaml['foot1']
             foot2 = config_yaml['foot2']
     # mail添付ファイルフォルダ
-    with open('C:/em/emproject/emoney.yaml','r+',encoding="utf-8") as ry:
+    with open('c:/em/emproject/emoney.yaml','r+',encoding="utf-8") as ry:
             config_yaml = yaml.safe_load(ry)
             file_path = config_yaml['dir_filepath']                   
     ########################################

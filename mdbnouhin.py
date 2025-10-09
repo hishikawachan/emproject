@@ -29,7 +29,7 @@ wb.save(r'C:\Users\hishi\OneDrive\Workplace\2025年営業計画\wk_nouhin.xlsx')
 
 con_str1 = (
 	r'Driver={Microsoft Access Driver (*.mdb, *.accdb)};'
-	r'DBQ=D:\Workspace\納品書Ver.1.2元データ用(2025版 税率10% 西暦表示).mdb;'
+	r'DBQ=C:\Users\hishi\OneDrive\Workplace\2025年営業計画\納品データ\納品書Ver.1.2元データ用(2025版 税率10% 西暦表示).mdb;'
 	)
 
 con = pyo.connect(con_str1)
@@ -40,10 +40,8 @@ cursor = con.cursor()
 # ###################################
 sql1 = 'SELECT * FROM 納品書 \
         LEFT JOIN ゴルフ場名簿 ON(納品書.ゴルフ場No = ゴルフ場名簿.ゴルフ場No) \
-        WHERE 納品日 Between #2025/02/01# AND #2025/02/28#'
-#sql1 = 'SELECT * FROM 納品書 \
-#        LEFT JOIN ゴルフ場名簿 ON(納品書.ゴルフ場No = ゴルフ場名簿.ゴルフ場No) \
-#        WHERE 納品No > 6589'
+        WHERE 納品日 Between #2025/09/01# AND #2025/09/30#'
+
 rows_nouhin = cursor.execute(sql1).fetchall()
 
 #print(f'納品No={row.納品No}, 納品合計金額={row.納品合計金額}, 摘要={row.摘要}, 納品日={row.納品日.strftime("%Y/%m/%d")}')
@@ -57,12 +55,12 @@ rows_nouhin_len = len(rows_nouhin)
 wb = openpyxl.load_workbook(r'C:\Users\hishi\OneDrive\Workplace\2025年営業計画\wk_nouhin.xlsx')
 sh_nouhin = wb['Sheet1']
 rowno = sh_nouhin.max_row + 1
-start_rowno = rowno
+rowno = 2
 #print(f'最終行 = {maxr}')
 data_no = 0
 for data_no in range(0, rows_nouhin_len):
     if rows_nouhin[data_no].納品合計金額 != None:
-        if rows_nouhin[data_no].納品合計金額 != 0:
+        if rows_nouhin[data_no].納品合計金額 >= 0:
             sh_nouhin.cell(rowno,1).value = rows_nouhin[data_no].納品No
             #sh_nouhin.cell(rowno,2).value = rows_nouhin[data_no].納品日
             w_date = date(int(rows_nouhin[data_no].納品日.year), int(rows_nouhin[data_no].納品日.month), int(rows_nouhin[data_no].納品日.day))
@@ -72,9 +70,24 @@ for data_no in range(0, rows_nouhin_len):
             sh_nouhin.cell(rowno,5).value = rows_nouhin[data_no].納品合計金額 
             sh_nouhin.cell(rowno,6).value = w_date.year
             sh_nouhin.cell(rowno,7).value = w_date.month
-            rowno += 1
             
-#wb.save(r'C:\Users\user\OneDrive\Workplace\2024年営業計画\売上計画案（東京本社）.xlsx')
+            ###################################
+            # 納品書明細データから品名を抽出して表示
+            ####################################
+            nouhin_no = rows_nouhin[data_no].納品No
+            sql2 = 'SELECT * FROM 納品明細 Ver2 \
+                    WHERE 納品No=?'
+            
+            rows_nouhinmeisai = cursor.execute(sql2, nouhin_no).fetchall()
+            #rows_nouhinmeisai = cursor.execute(sql2).fetchone()
+
+            if len(rows_nouhinmeisai) > 0:
+                for data_no2 in range(0,len(rows_nouhinmeisai)):
+                    sh_nouhin.cell(rowno,8).value = rows_nouhinmeisai[data_no2].品名
+                    rowno += 1 
+            else:
+                rowno += 1       
+            
 wb.save(r'C:\Users\hishi\OneDrive\Workplace\2025年営業計画\wk_nouhin.xlsx')
 
 cursor.close()
