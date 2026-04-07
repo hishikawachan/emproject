@@ -11,7 +11,7 @@ from openpyxl.styles.borders import Border, Side
 import datetime
 import time
 
-ICCARD_NUMBER = '1002001'   #開始カード番号
+ICCARD_NUMBER = '1009001'   #開始カード番号
 DATA_NUMBER = 2000     #出力データ件数
 
 

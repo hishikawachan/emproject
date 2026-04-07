@@ -1,6 +1,6 @@
 import time
 from socket import *
-import struct
+#import struct
 import datetime
 
 BUFSIZE = 4096
@@ -95,6 +95,7 @@ class kvHostLink:
         return rcv
 
 
+#=============== 以下テストプログラム ==================
 kv = kvHostLink('192.168.1.199')
 data = kv.mode('1')
 print(data)
@@ -116,8 +117,29 @@ print(data)
 #print(data)
 data = kv.read('DM00000.U')
 print(data)
-data = kv.reads('DM00000.S', 12)
+
+add_num = 3
+add = 'DM' + str(add_num) + '.S'
+data = kv.reads(add, 12)
+#data.decode(encoding='utf-8')
 print(data)
+print(type(data))
+s_data = data.decode(encoding='utf-8')
+print(s_data)
+print(type(s_data))
+#str_data = str(s_data)
+str_data = ''
+for i in range(0, len(s_data)):
+    if s_data[i] == '+' or s_data[i] == '-' :
+        if i == 0:
+            str_data = str_data + s_data[i]
+        else:   
+            print(int(str_data))
+            str_data = ''
+            str_data = str_data + s_data[i]
+    else:   
+        str_data = str_data + s_data[i]
+
 data = kv.write('DM00010.U', '999')
 print(data)
 data = kv.read('DM00010.U')
