@@ -52,7 +52,7 @@ if __name__ == "__main__":
     ret_rows = resdb.company_data_allget()
 
     # mail操作用yamlファイルから共通データ取得
-    with open('C:\Users\hishi\OneDrive\Labo\em\emproject\yaml/emoneymail.yaml','r+',encoding="utf-8") as rm:
+    with open(r'C:\Users\hishi\OneDrive\Labo\em\emproject\yaml\emoneymail.yaml','r+',encoding="utf-8") as rm:
             config_yaml = yaml.safe_load(rm)
             subject_org = config_yaml['head']
             body1 = config_yaml['body1']

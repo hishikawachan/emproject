@@ -47,7 +47,7 @@ class DataBaseClass:
         # 基本情報取得
         #with open('C:/emoney/emoney.yaml','r+',encoding="utf-8") as ry:
         #with open('C:/Users/user/OneDrive/Workplace/emoney/emoney.yaml','r+',encoding="utf-8") as ry:
-        with open('C:\Users\hishi\OneDrive\Labo\em\emproject\yaml\emoney.yaml','r+',encoding="utf-8") as ry:
+        with open(r'C:\Users\hishi\OneDrive\Labo\em\emproject\yaml\emoney.yaml','r+',encoding="utf-8") as ry:
             config_yaml = yaml.safe_load(ry)
             self.dbip = config_yaml['dbip']
             self.dbname = config_yaml['dbmarianame']
