@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 # ======================================
 # 
@@ -46,7 +47,7 @@ class DataBaseClass:
         # 基本情報取得
         #with open('C:/emoney/emoney.yaml','r+',encoding="utf-8") as ry:
         #with open('C:/Users/user/OneDrive/Workplace/emoney/emoney.yaml','r+',encoding="utf-8") as ry:
-        with open('C:/em/emproject/emoney.yaml','r+',encoding="utf-8") as ry:
+        with open('C:\Users\hishi\OneDrive\Labo\em\emproject\yaml\emoney.yaml','r+',encoding="utf-8") as ry:
             config_yaml = yaml.safe_load(ry)
             self.dbip = config_yaml['dbip']
             self.dbname = config_yaml['dbmarianame']
@@ -902,5 +903,5 @@ class DataBaseClass:
         #print('ディストラクタ呼び出し') 
         # DBバックアップ 
         #print('データベースバックアップ(処理後)開始')       
-        res = self.database_backup('0')       
+        res = self.database_backup('2')       
                

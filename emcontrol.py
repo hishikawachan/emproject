@@ -8,6 +8,7 @@
 # [環境]
 #   Python 3.10.8
 #   VSCode 1.64
+
 #   <拡張>
 #     |- Python  V2021.12
 #     |- Pylance V2021.12

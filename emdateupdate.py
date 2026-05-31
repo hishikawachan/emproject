@@ -29,7 +29,7 @@ if __name__ == "__main__":
     
     # 基本情報取得
     # 日付操作用yamlファイルから共通データ取得
-    with open('C:/em/emproject/emdate.yaml','r+',encoding="utf-8") as dy:
+    with open('C:\Users\hishi\OneDrive\Labo\em\emproject\yaml\emdate.yaml','r+',encoding="utf-8") as dy:
             conf = yaml.safe_load(dy)
             #print(conf)
             com_arry = conf['companys']

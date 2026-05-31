@@ -43,7 +43,7 @@ if __name__ == "__main__":
     web_data = [] #TOAMAS
 
     # web操作用yamlファイルから共通データ取得
-    with open('C:/em/emproject/emoneyweb.yaml','r+',encoding="utf-8") as ry:
+    with open('C:\Users\hishi\OneDrive\Labo\em\emproject\yaml\emoneyweb.yaml','r+',encoding="utf-8") as ry:
             config_yaml = yaml.safe_load(ry)
             web_data.append(config_yaml['dir_filepath']) 
             web_data.append(config_yaml['data_filepath'])

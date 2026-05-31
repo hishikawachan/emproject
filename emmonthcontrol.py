@@ -45,7 +45,7 @@ if __name__ == "__main__":
     resdb = DataBaseClass('0') 
 
     # 共通yamlファイルから共通データ取得
-    with open('C:/em/emproject/emoneyweb.yaml','r+',encoding="utf-8") as ry:
+    with open('C:\Users\hishi\OneDrive\Labo\em\emproject\yaml/emoneyweb.yaml','r+',encoding="utf-8") as ry:
         config_yaml = yaml.safe_load(ry)
         check_list = config_yaml['data_check_list']
 

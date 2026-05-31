@@ -13,7 +13,7 @@ class Publiclib:
     def load_yaml(self):
         parm = []
         # web操作用yamlファイルから共通データ取得
-        with open('C:/em/emproject/emoneygui.yaml','r+',encoding="utf-8") as ry:
+        with open('C:\Users\hishi\OneDrive\Labo\em\emproject\yaml\emoneygui.yaml','r+',encoding="utf-8") as ry:
             config = yaml.safe_load(ry)
             parm.append(config['login_title']) 
             parm.append(config['login_geometry']) 
