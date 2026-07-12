@@ -16,6 +16,7 @@
 #   2023/9/16  試験的に機能追加(金種別・時間別等のデータをSQLにて取得)
 #   2023/10/24 取引明細データ抽出速度向上改良
 #   2023/11/13 金種ラベル　カラム追加
+#   2026/7/8   未了（書込済）及び　未了（不明）データを対象に含めるように修正
 # ======================================
 from datetime import datetime
 import datetime
@@ -451,7 +452,8 @@ class DataBaseClass:
         with open(input_filepath, encoding = 'UTF-8') as f:
             reader = csv.reader(f)
             for row in reader :
-                if row[2] != '現金' and row[3] != '未了（不明）' and row[3] != '未了（未書込）' and row[3] != '未了（書込済）': #現段階では現金データは対象外とする。未了は対象外
+                if row[2] != '現金' and row[3] != '未了（未書込）' : #現段階では現金データは対象外とする。未了（未書込）は対象外。未了（不明）はデータに含む 2026.7.8改訂
+                #if row[2] != '現金' and row[3] != '未了（不明）' and row[3] != '未了（未書込）' and row[3] != '未了（書込済）': #現段階では現金データは対象外とする。未了は対象外
                     # 日付範囲の判定
                     # 決済日時取得
                     if in_count == 0:
@@ -577,8 +579,8 @@ class DataBaseClass:
                 print('出力件数',out_count)
                 print('入力不可件数',out_err)
                 print('合計金額',sum_price)
-                print('ニューツルミゴルフ練習場 1  →  25',cnt_125)
-                print('ニューツルミゴルフ練習場 25  →  1',cnt_251)
+                #print('ニューツルミゴルフ練習場 1  →  25',cnt_125)
+                #print('ニューツルミゴルフ練習場 25  →  1',cnt_251)
             
             #return edit_status,out_count,db_updatedate  
             return edit_status,out_count
