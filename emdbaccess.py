@@ -28,6 +28,11 @@ class dbAccessor:
     # -----------------------------------
     def __init__(self, dbName, port, hostName, id, password):
         #print("start:__init__")
+
+        # 【修正】エラー発生時に属性未定義になるのを防ぐため、初期値を入れておく
+        self.conn = None
+        self.cur = None
+        self.table_name = []
         
         try:
             # DBに接続する
@@ -53,9 +58,13 @@ class dbAccessor:
             self.table_name =[]
             for tt in self.cur:
                 self.table_name.append(tt)   
-           
-        except (mysql.connector.errors.ProgrammingError) as e:
-            print(e)
+
+        # 【修正】接続エラーなども確実にキャッチできるよう一般的なExceptionに変更
+        except Exception as e:
+            print(f"【DB接続エラー】インスタンス初期化に失敗しました: {e}")
+   
+        #except (mysql.connector.errors.ProgrammingError) as e:
+        #    print(e)
 
         #print("end:__init__")
     # -----------------------------------

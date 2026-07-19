@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 # ======================================
 # 
@@ -15,6 +16,7 @@
 #   2023/9/16  試験的に機能追加(金種別・時間別等のデータをSQLにて取得)
 #   2023/10/24 取引明細データ抽出速度向上改良
 #   2023/11/13 金種ラベル　カラム追加
+#   2026/7/8   未了（書込済）及び　未了（不明）データを対象に含めるように修正
 # ======================================
 from datetime import datetime
 import datetime
@@ -24,9 +26,9 @@ import yaml
 import csv
 import jpholiday
 import subprocess
-import pandas as pd
+import shlex
+import pandas as pd 
 from emdbaccess import dbAccessor
-#import emoneyweather as ew
 import emweather as ew
 
 class DataBaseClass:
@@ -42,9 +44,11 @@ class DataBaseClass:
     # [5]:帳票ファイル出力先ディレクトリ
     #
     #####################################
-    def __init__(self):
+    def __init__(self, flg):
         # 基本情報取得
-        with open('C:/emoney/emoney.yaml','r+',encoding="utf-8") as ry:
+        #with open('C:/emoney/emoney.yaml','r+',encoding="utf-8") as ry:
+        #with open('C:/Users/user/OneDrive/Workplace/emoney/emoney.yaml','r+',encoding="utf-8") as ry:
+        with open(r'C:\Users\hishi\OneDrive\Labo\em\emproject\yaml\emoney.yaml','r+',encoding="utf-8") as ry:
             config_yaml = yaml.safe_load(ry)
             self.dbip = config_yaml['dbip']
             self.dbname = config_yaml['dbmarianame']
@@ -55,11 +59,12 @@ class DataBaseClass:
             
         # DB接続
         self.cur = dbAccessor(self.dbname,  self.dbport, self.dbip, self.dbuser, self.dbpw)
-        # DBバックアップ  
-        print('データベースバックアップ(処理前)開始')          
-        res = self.database_backup('1')    
+        # DBバックアップ         
+        if flg == '1' or flg == '2':
+            print('データベースバックアップ(処理前)開始') 
+            res = self.database_backup(flg)    
     #####################################
-    # テーブル名一覧を取得
+    # ファイル出力先パスを取得
     #####################################
     def init_return(self):
         parm_list = []
@@ -429,7 +434,7 @@ class DataBaseClass:
     ###############################################################
     # 対象会社のcsvファイル読込み　TOAMAS及びDB出力
     ############################################################### 
-    def income_output(self,companyid, sdate, edate, f_name):
+    def income_output(self, companyid, sdate, edate, f_name):
         # 入力ファイル名の取得
         file_name = f_name.strip()
         input_filepath = os.path.join(self.outpath,file_name)  
@@ -439,12 +444,16 @@ class DataBaseClass:
         out_err = 0
         in_count = 0
         out_count = 0
-        sum_price = 0        
+        sum_price = 0
+        #ニューツルミゴルフ練習場　端末入替の為の特殊処理用カウンター 2
+        cnt_125 = 0
+        cnt_251 = 0        
     
         with open(input_filepath, encoding = 'UTF-8') as f:
             reader = csv.reader(f)
             for row in reader :
-                if row[2] != '現金' and row[3] != '未了（不明）' and row[3] != '未了（未書込）' : #現段階では現金データは対象外とする。未了は対象外
+                if row[2] != '現金' and row[3] != '未了（未書込）' : #現段階では現金データは対象外とする。未了（未書込）は対象外。未了（不明）はデータに含む 2026.7.8改訂
+                #if row[2] != '現金' and row[3] != '未了（不明）' and row[3] != '未了（未書込）' and row[3] != '未了（書込済）': #現段階では現金データは対象外とする。未了は対象外
                     # 日付範囲の判定
                     # 決済日時取得
                     if in_count == 0:
@@ -477,9 +486,23 @@ class DataBaseClass:
                             data_list.append(int(row[15])) #決済番号
                             
                             #設置場所資産番号から設置場所番号を検索
+                            #ニューツルミゴルフ練習場端末入替の為の特殊処理 start
+                            # 2025/5/14 入替を戻した為、処理を解除
                             ret_rows = self.set_placecd(row[8])
+                            # if companyid == '0000001':
+                            #     if ret_rows[0][0] == 1:
+                            #         data_list.append(25) 
+                            #         cnt_125 += 1
+                            #     else:
+                            #         if ret_rows[0][0] == 25:
+                            #             data_list.append(1) 
+                            #             cnt_251 += 1
+                            #         else:
+                            #             data_list.append(ret_rows[0][0])   
+                            # else:
                             data_list.append(ret_rows[0][0])      
-                            
+                            #ニューツルミゴルフ練習場端末入替の為の特殊処理 end
+
                             #明細区分番号
                             if row[2] == '現金':
                                 data_list.append('1') 
@@ -542,7 +565,7 @@ class DataBaseClass:
                             out_err += 1
                         
                     
-            db_updatedate = datetime_date[0] + '-' + datetime_date[1] + '-' + datetime_date[2]
+            #db_updatedate = datetime_date[0] + '-' + datetime_date[1] + '-' + datetime_date[2]
                         
             # if out_err > 0:
             #         print('入力不可件数：',out_err)
@@ -556,8 +579,11 @@ class DataBaseClass:
                 print('出力件数',out_count)
                 print('入力不可件数',out_err)
                 print('合計金額',sum_price)
+                #print('ニューツルミゴルフ練習場 1  →  25',cnt_125)
+                #print('ニューツルミゴルフ練習場 25  →  1',cnt_251)
             
-            return edit_status,out_count,db_updatedate    
+            #return edit_status,out_count,db_updatedate  
+            return edit_status,out_count
     ###############################################################
     # 会社データの次回処理予定日、対象範囲を更新
     ############################################################### 
@@ -592,6 +618,25 @@ class DataBaseClass:
                     WHERE comcode={companyid}
                 """            
             ret_rows = self.cur.excecuteUpdate(s_sql)         
+        
+        return ret_rows #更新件数    
+    ###############################################################
+    # 会社データの内部日付を指定日付に変更
+    ############################################################### 
+    def company_date_update(self,companyid, com_update, com_startdate, com_enddate):
+        s_sql = f'SELECT * FROM tbcompany WHERE comcode={companyid}'
+        ret_rows = self.cur.excecuteQuery(s_sql) 
+        
+        #指定日付をセットする
+        if len(ret_rows) > 0:
+            s_sql = f"""
+                UPDATE tbcompany 
+                SET comupdate = '{com_update}',
+                    comstartday = '{com_startdate}',
+                    comendday = '{com_enddate}'                   
+                WHERE comcode={companyid}
+            """
+            ret_rows = self.cur.excecuteUpdate(s_sql)      
         
         return ret_rows #更新件数    
     ###############################################################
@@ -674,6 +719,41 @@ class DataBaseClass:
         df_paylog['placesisancode'] = df_paylog['placesisancode'].str.strip()
         
         return df_paylog    
+    ##############################################################
+    # 条件に合う取引明細データの決済金額を設置場所毎に集計して返す
+    # 2024.10.27追加
+    ###############################################################
+    def paylog_get_date(self,COCODE,sdate,edate): 
+        # 対象設置場所取得
+        sql_place = f"""  
+                            SELECT placecode
+                            FROM tbplace 
+                            where placecocode = {COCODE}
+                    """ 
+        
+        ret_place = self.cur.excecuteQuery(sql_place)
+        #print('抽出された設置場所コード',ret_place)
+        s_date = sdate.year * 10000 +  sdate.month * 100 + sdate.day
+        e_date = edate.year * 10000 +  edate.month * 100 + edate.day
+        # 対象設置場所を配列に保管
+        ret_place2 = []
+        for i in ret_place:
+            ret_place2.append(int(i[0]))
+            
+        p_array = tuple(ret_place2)
+        stmt = ','.join(['%s'] * len(ret_place2))
+        sql_place2 = f"""
+                            SELECT tbplace.placename, sum(tbpaylog.payprice)
+                            FROM tbpaylog as a
+                            inner join tbplace as c
+                                 on (a.payplacecd = c.placecode)
+                            WHERE paydatedec >= '{s_date}'
+                            AND paydatedec <= '{e_date}'
+                            AND payplacecd IN({stmt})   
+                            group by tbplace.placename;                         
+                    """ %p_array        
+        
+        ret_rows = self.cur.excecuteQuery(sql_place2)
     ###############################################################
     # 月別レポート用取引明細データをDataFrameで返す    # 
     ###############################################################  
@@ -718,45 +798,112 @@ class DataBaseClass:
         df_paylog['placecocode'] = df_paylog['placecocode'].str.strip()
         df_paylog['placesisancode'] = df_paylog['placesisancode'].str.strip() 
         
-        return df_paylog    
+        return df_paylog 
+    ###############################################################
+    # 指定した年月の売上集計値を会社コード毎に集計して返す
+    # 2025.2.10 追加     
+    ###############################################################  
+    def paylog_monthsum_get(self, year,  month):  
+        sql_monthsum = f"""
+                            SELECT co.comcode,co.comname , sum(lg.payprice)
+                            FROM tbpaylog AS lg
+                            INNER JOIN  tbplace AS ps
+                            ON lg.payplacecd = ps.placecode
+                            INNER JOIN  tbcompany AS co
+                            ON ps.placecocode = co.comcode
+                            WHERE lg.payyear = '{year}' AND lg.paymonth = '{month}'
+                            group by co.comcode;
+                        """
+        ret_monthsum = self.cur.excecuteQuery(sql_monthsum)
+        return ret_monthsum
     ##############################################################
     # データベースバックアップ
     ##############################################################
-    def database_backup(self,flg):
+    """  def database_backup(self,flg):
+        if flg == '1' or flg == '2':
+            write_to_file: bool = True
+            file_name:str = 'embackup.sql'
+            
+            dt_now = datetime.datetime.now()
+            
+            dump_command = [
+            # 'mysqldump',
+            'mariadb-dump',
+            '--host=' + self.dbip,
+            '--user=' + self.dbuser,
+            '--password=' + self.dbpw,
+            '--all-databases'
+            ]
+            #バックアップ実行
+            dump_process = subprocess.Popen(dump_command, stdout=subprocess.PIPE,shell=True)
+            #結果をsqlとして出力
+            if write_to_file:
+                dump_result = dump_process.communicate()[0]
+                str_date = str(dt_now.month) + str(dt_now.day) + str(dt_now.hour) +  str(dt_now.minute)
+                if flg == '1':
+                    print('データベースバックアップ(処理前)：',datetime.datetime.now())  
+                    file_name2 = str_date + '_' + 'before' + '_' + file_name 
+                else:
+                    if flg == '2':
+                        print('データベースバックアップ(処理後)：',datetime.datetime.now())  
+                        file_name2 = str_date + '_' + 'after'  + '_' + file_name 
+                if flg == '1' or flg == '2':
+                    out_file_path = os.path.join(self.outpath,file_name2)    
+                    with open(out_file_path, 'wb') as fp:
+                        fp.write(dump_result) 
+        
+        return 0     """
 
-        write_to_file: bool = True
+    def  database_backup(self, flg):
+    #def backup_with_mariabackup(target_dir, user, password, datadir):
+        """
+        mariabackupを使用してMariaDBをバックアップする
+        """
+        # バックアップディレクトリの作成
         file_name:str = 'embackup.sql'
-        
         dt_now = datetime.datetime.now()
+        str_date = str(dt_now.month) + str(dt_now.day) + str(dt_now.hour) +  str(dt_now.minute)
+        if flg == '1':
+            print('データベースバックアップ(処理前)：',datetime.datetime.now())  
+            file_name2 = str_date + '_' + 'before'  
+            outpath = os.path.join(self.outpath,file_name2)   
         
-        dump_command = [
-        'mysqldump',
-        '--host=' + self.dbip,
-        '--user=' + self.dbuser,
-        '--password=' + self.dbpw,
-        '--all-databases'
+        else:
+            if flg == '2':
+                print('データベースバックアップ(処理後)：',datetime.datetime.now())  
+                file_name2 = str_date + '_' + 'after'
+                outpath = os.path.join(self.outpath,file_name2)   
+
+        #if flg == '1' or flg == '2':
+        #    out_file_path = os.path.join(self.outpath,file_name2)    
+
+        #os.makedirs(outpath, exist_ok=True)
+        #with open(out_file_path, 'wb') as fp:
+        #    fp.write(out_file_path) 
+        """MariaDBをバックアップする。"""
+        command = [
+        "mariabackup",
+        f"--backup",
+        f"--target-dir={outpath}",
+        f"--user={self.dbuser}",
+        f"--password={self.dbpw}",
+        f"--host={self.dbip}",
+        f"--port={self.dbport}"
         ]
-        #バックアップ実行
-        dump_process = subprocess.Popen(dump_command, stdout=subprocess.PIPE,shell=True)
-        #結果をsqlとして出力
-        if write_to_file:
-            dump_result = dump_process.communicate()[0]
-            str_date = str(dt_now.month) + str(dt_now.day) + str(dt_now.hour) +  str(dt_now.minute)
-            if flg == '1':
-                file_name2 = str_date + '_' + 'before' + '_' + file_name 
-            else:
-                file_name2 = str_date + '_' + 'after'  + '_' + file_name 
-            out_file_path = os.path.join(self.outpath,file_name2)    
-            with open(out_file_path, 'wb') as fp:
-                fp.write(dump_result) 
-        
-        return 0    
+       
+        try:
+            subprocess.run(command, check=True, capture_output=True, text=True)
+            print(f"バックアップ成功: {outpath}")
+        except subprocess.CalledProcessError as e:
+            print(f"バックアップ失敗: {e.stderr}")
+
+       
     ###############################################################
     # ディストラクタ
     ###############################################################
     def __del__(self):
         #print('ディストラクタ呼び出し') 
         # DBバックアップ 
-        print('データベースバックアップ(処理後)開始')       
+        #print('データベースバックアップ(処理後)開始')       
         res = self.database_backup('2')       
                

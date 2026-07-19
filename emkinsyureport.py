@@ -12,6 +12,7 @@
 #
 # [更新履歴]
 #   2023/11/6  新規作成
+#   2025/3/16  金額（回数）に表示を変更
 # ======================================
 from datetime import datetime
 import datetime
@@ -59,9 +60,9 @@ class dbKinsyuReport:
             #金種・日付で決済件数を集計
             self.df_paylog2 = pd.pivot_table(dfx, index=['payprice'], columns='paydatedec',aggfunc='count',margins=True,margins_name='Total')
             
-     ##########################
+    ###########################
     # 金種別選択回数集計表出力
-    # ########################  
+    ##########################  
     def print_kinsyu(self):
         
         #debug
@@ -106,7 +107,8 @@ class dbKinsyuReport:
         # 印刷の向きを設定
         wps.orientation = sh.ORIENTATION_LANDSCAPE
             
-        sh.cell(row=1, column=2).value='金種別利用回数集計表'
+        #sh.cell(row=1, column=2).value='金種別利用回数集計表'
+        sh.cell(row=1, column=2).value='金種別売上集計表'
         sh.cell(row=1, column=3).value=self.sheet_name
             
         str1 = (f'{self.SYEAR} 年 {self.SMONTH} 月 {self.SDAY} 日  ～')
@@ -121,11 +123,11 @@ class dbKinsyuReport:
                 if len(str(cell.value)) > max_length:
                     max_length = len(str(cell.value))        
                 
-            adjusted_width = (max_length + 1) * 1.3   
+            adjusted_width = (max_length + 1) * 1.6   
             sh.column_dimensions[col[0].column_letter].width = adjusted_width
                 
         #部分的にセル幅を修正
-        sh.column_dimensions['B'].width = 25 #売上日
+        sh.column_dimensions['B'].width = 19 #売上日
         #sh.column_dimensions['C'].width = 15 #決済種別
         sh.column_dimensions['C'].width = 15 #決済金額    
         #罫線引く
@@ -151,7 +153,7 @@ class dbKinsyuReport:
             
         #金種別の合計表示
         ft = Font(bold=True)
-        sh.cell(row=maxr+2,column=2).value = "金種別件数合計"
+        sh.cell(row=maxr+2,column=2).value = "金種別利用回数合計"
         sh.cell(row=maxr+2,column=2).font = ft
         #for i in range(5,12):
         for i in range(5,maxr2):
@@ -202,7 +204,43 @@ class dbKinsyuReport:
                 res_horiday = jpholiday.is_holiday_name(datetime.date(dy,dm,dd))
                 if res_horiday != None:
                     sh[cel.coordinate].fill = PatternFill(patternType='solid', fgColor='8eef6e')
-                    
+        
+        #表示方法を金額に変更
+        # データの最初 cell(row=7,column=4)
+
+        #データ部ループ金額換算
+        max_datac = 0
+        col_total = [[0 for j in range(2)] for i in range(maxc+1)]
+        for i in range(0,maxc+1):
+            col_total[i][0] = i + 4 
+        
+        for col in range(4,maxc+1):
+            for row in range(7,maxr):                
+                if sh.cell(row=5,column=col).value != "合計":  #合計列
+                    if sh.cell(row=row,column=col).value != None:
+                        if int(sh.cell(row=row,column=col).value) >= 1:
+                            #金額計算
+                            if sh.cell(row=row,column=3).value != None:
+                                mul_num = int(sh.cell(row=row,column=col).value) * int(sh.cell(row=row,column=3).value)
+                                sh.cell(row=row,column=col).value = mul_num
+                                col_total[col-4][1] += mul_num
+                            else:
+                                sh.cell(row=row,column=col).value = " "
+                        else:
+                            sh.cell(row=row,column=col).value = " "
+                    else:
+                        sh.cell(row=row,column=col).value = " "
+                else:
+                    if sh.cell(row=row,column=3).value != None:
+                        mul_num = sh.cell(row=row,column=col).value * int(sh.cell(row=row,column=3).value)
+                        sh.cell(row=row,column=col).value = mul_num
+                        col_total[col-4][1] += mul_num
+                        max_datac = col    
+
+        #合計行へ合計値設定
+        for col in range(4,max_datac+1):           
+            sh.cell(row=maxr,column=col).value = col_total[col-4][1]       
+
         #ワーク用シートの削除とブックの保存
         #wb.remove(wb.worksheets[3])
         wb.remove(wb[sheet_name2])

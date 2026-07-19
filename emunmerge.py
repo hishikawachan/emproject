@@ -2,7 +2,7 @@
 # ======================================
 # 
 # 電子マネー管理システム　フレームワーク
-# Excel セル操作モジュール
+# Excel セル操作(結合解除)モジュール
 #
 # [環境]
 #   Python 3.10.8
@@ -23,7 +23,8 @@ class excel_operate:
    def __init__(self, excel_dir):
       self.excel_dir = excel_dir
       self.workbook = openpyxl.load_workbook(self.excel_dir)
-      self.sheet_number = len(self.workbook.get_sheet_names())
+      #self.sheet_number = len(self.workbook.get_sheet_names())
+      self.sheet_number = len(self.workbook.sheetnames)
       self.sheet_contains =  [self.workbook.worksheets[i] for i in range(self.sheet_number)]
       self.merged_cells_list = [self.sheet_contains[i].merged_cells.ranges for i in range(self.sheet_number)]
 
